@@ -1,0 +1,48 @@
+---
+title: "IMU Pose Estimation Research"
+kicker: "ESROP Global Research Internship / King Mongkut's University of Technology Thonburi"
+tagline: "Robotic control-systems research on IMU-based pose estimation using Kalman filtering, as a UofT research placement in Bangkok."
+summary: "Through UofT's ESROP Global program, I spent a summer at the IC2 Lab at King Mongkut's University of Technology Thonburi in Bangkok researching IMU-based pose estimation for robotic control systems. I modeled 6DOF dynamics using quaternions, built Kalman-filter-based estimators, and contributed to a tutorial paper and its testing protocols."
+status: "Completed"
+year: "Summer 2024"
+stack: ["MATLAB / Simulink", "Kalman Filtering", "Quaternion-based 6DOF Modeling", "PID Control", "CAD", "Technical Writing"]
+tags: ["State Estimation", "Controls", "Research", "Robotics"]
+role:
+  - "Researched IMU-based pose estimation using Kalman filtering"
+  - "Mathematically modeled 6DOF dynamics using quaternions"
+  - "Built simulation models in MATLAB/Simulink and CAD for research visualization and validation"
+  - "Modeled PID feedback controllers for autonomous system control protocols"
+  - "Contributed to a tutorial paper, including its testing protocols"
+  - "Represented the University of Toronto at the IC2 Lab as part of the exchange"
+links: []
+confidential: false
+featured: false
+size: "full"
+order: 6
+coverLabel: "Simulink pose estimation model"
+coverKind: "image"
+---
+
+## The problem
+
+Pose estimation from IMUs alone is noisy and drifts. Getting it right matters for any autonomous system that has to know its own orientation and position without leaning on external references like GPS or vision.
+
+## How I approached it
+
+I modeled the underlying 6DOF dynamics using quaternions to avoid the singularities you get with Euler angles, then built Kalman-filter-based estimators on top to fuse noisy IMU measurements into a usable pose estimate. I validated the models in MATLAB/Simulink and CAD before folding the work into testing protocols that became part of a tutorial paper documenting how to use it.
+
+## My role
+
+This was a placement through UofT's ESROP Global program, one of the university's more competitive research programs, at the IC2 Lab at King Mongkut's University of Technology Thonburi in Bangkok. Alongside the research itself, I represented the University of Toronto at the lab as part of the exchange.
+
+## Hardest problem
+
+Quaternion-based dynamics are mathematically clean but easy to get subtly wrong: sign conventions, normalization, and the mechanics of fusing a quaternion-based orientation estimate through a Kalman filter all have failure modes that don't show up until you check the estimate against ground truth. Getting the math right and getting the implementation right turned out to be two different problems.
+
+## Result
+
+The work contributed to a tutorial paper on IMU-based pose estimation, including three testing protocols for applying it.
+
+## What I learned
+
+State estimation is where a lot of "the controller isn't working" problems actually live. A perfectly good controller fed a bad pose estimate will behave badly, and it's easy to blame the wrong half of the system if you haven't isolated the estimator first.

@@ -1,0 +1,43 @@
+---
+title: "Autonomous Indoor Tracking Drone"
+kicker: "MakeUofT 24-Hour Hackathon / Team of 3"
+tagline: "Built in 24 hours for the 'most useless invention' category: a drone that autonomously follows you around indoors and tries to catch rain. It never rains indoors."
+summary: "With two friends, I built an autonomous drone in 24 hours at UofT IEEE's MakeUofT hackathon, entered in the 'most useless invention' category. It tracks fiducial markers on a helmet for pose estimation and follows the wearer around indoors, ostensibly to catch rain. I owned mechanical design and manufacturing: the CAD and the physical build."
+status: "Built in 24 hours"
+year: "Hackathon"
+stack: ["CAD / Mechanical Design", "PX4", "ROS 2 Humble", "Raspberry Pi", "Computer Vision", "Extended Kalman Filter", "PID Control", "Rapid Prototyping"]
+tags: ["Robotics", "Autonomy", "Mechanical", "Computer Vision", "Hackathon"]
+role:
+  - "Owned mechanical design and manufacturing: CAD and the physical build"
+  - "Worked in a 3-person team under a strict 24-hour build"
+  - "Contributed to the fiducial-marker-based pose estimation used for autonomous following"
+links: []
+confidential: false
+featured: true
+size: "full"
+order: 3
+coverLabel: "Drone in autonomous indoor flight"
+coverKind: "video"
+---
+
+## The idea
+
+UofT IEEE's MakeUofT is a 24-hour "makeathon" with a handful of competition categories. Two friends and I gravitated toward "most useless invention," because the three of us care more about having fun with a hard problem than about winning. We wanted to build something that flies, and landed on a drone that follows you around indoors and tries to catch rain. It never rains indoors. That was the whole point.
+
+## My role
+
+We split the work by what each of us was best at. Mine was mechanical: I designed the CAD and built the physical drone. The other two split firmware, autonomy, and computer vision.
+
+## How it worked
+
+The drone ran PX4 on a Raspberry Pi under ROS 2, estimating its position indoors with an Extended Kalman Filter fusing IMU data with optical flow and lidar for altitude. To follow a person around, it tracked fiducial markers on a helmet and used PID control to hold position relative to them.
+
+## What went wrong
+
+The complexity we'd chosen for ourselves ended up being the hardest part to fight through in 24 hours. We hit real problems: materials shrinking in the cold, code bugs that stopped it from flying at all. We eventually got it flying indoors and tracking the markers, which given the timeline felt like a win on its own.
+
+Where we actually lost was the presentation. All three of us were badly sleep-deprived by demo time, and we couldn't communicate what we'd built clearly enough for the judges to follow it. We had a working autonomous drone and still didn't place, because we couldn't explain it well enough in the room. I made a recap video afterward specifically because of that: if the drone couldn't speak for itself on stage, at least it could on video.
+
+## What I learned
+
+A working system nobody understands might as well not work. We spent the entire 24 hours on the hard engineering and none on how we'd explain it, and that's what actually cost us. It's also just a project I'm genuinely proud of. It wasn't trying to be useful, it was trying to be fun and difficult at the same time, and we got an autonomous drone flying indoors from nothing in a single day.

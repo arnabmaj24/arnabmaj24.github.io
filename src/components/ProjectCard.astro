@@ -1,0 +1,60 @@
+---
+import MediaSlot from './MediaSlot.astro';
+import Tag from './Tag.astro';
+
+interface Props {
+  slug: string;
+  title: string;
+  kicker: string;
+  tagline: string;
+  tags: string[];
+  status: string;
+  coverLabel: string;
+  coverSrc?: string;
+  coverKind?: 'image' | 'video';
+  confidential?: boolean;
+  compact?: boolean;
+}
+
+const {
+  slug,
+  title,
+  kicker,
+  tagline,
+  tags,
+  status,
+  coverLabel,
+  coverSrc,
+  coverKind = 'image',
+  confidential = false,
+  compact = false,
+} = Astro.props;
+---
+
+<a
+  href={`/projects/${slug}`}
+  class="group block border border-border bg-bg-elevated transition-colors hover:border-border-strong"
+>
+  <MediaSlot
+    label={coverLabel}
+    src={coverSrc}
+    kind={coverKind}
+    controls={false}
+    aspect={compact ? 'aspect-[16/9]' : 'aspect-video'}
+    class="rounded-none border-0 border-b border-border"
+  />
+  <div class:list={['p-5', compact && 'p-4']}>
+    <div class="flex items-center justify-between gap-3">
+      <p class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">{kicker}</p>
+      <span class="status-stamp shrink-0 font-mono-tight text-[10px] uppercase tracking-wider">{status}</span>
+    </div>
+    <h3 class:list={['mt-2 font-serif font-medium text-fg group-hover:text-accent', compact ? 'text-base' : 'text-xl']}>
+      {title}
+    </h3>
+    {confidential && <p class="mt-1 font-mono-tight text-[10px] text-fg-dim">// sanitized case study</p>}
+    <p class="mt-2 text-sm text-fg-muted">{tagline}</p>
+    <div class="mt-4 flex flex-wrap gap-2">
+      {tags.slice(0, compact ? 3 : 5).map((t) => <Tag>{t}</Tag>)}
+    </div>
+  </div>
+</a>

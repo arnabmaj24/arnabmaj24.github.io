@@ -1,0 +1,46 @@
+---
+// Renders real media if `src` is provided, otherwise a labeled placeholder panel
+// so the layout is fully functional before real photos/video are dropped in.
+interface Props {
+  src?: string;
+  kind?: 'video' | 'image';
+  label: string;
+  aspect?: string; // tailwind aspect-ratio class, e.g. "aspect-video"
+  class?: string;
+  // Set false when this sits inside a link (e.g. a card) so the play/scrub bar
+  // doesn't fight with the surrounding <a> for clicks.
+  controls?: boolean;
+}
+
+const { src, kind = 'image', label, aspect = 'aspect-video', class: className = '', controls = true } = Astro.props;
+---
+
+{
+  src ? (
+    kind === 'video' ? (
+      <video
+        class:list={[aspect, 'w-full rounded-sm border border-border object-cover', className]}
+        src={src}
+        autoplay
+        muted
+        loop
+        playsinline
+        controls={controls}
+      />
+    ) : (
+      <img class:list={[aspect, 'w-full rounded-sm border border-border object-cover', className]} src={src} alt={label} />
+    )
+  ) : (
+    <div
+      class:list={[
+        aspect,
+        'journal-frame flex w-full items-center justify-center rounded-sm bg-bg-elevated px-6 text-center',
+        className,
+      ]}
+    >
+      <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">
+        [ {kind}: {label} ]
+      </p>
+    </div>
+  )
+}

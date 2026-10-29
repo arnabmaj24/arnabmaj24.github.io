@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-bg: #f5f0e6;
+  --color-bg-elevated: #ede4d0;
+  --color-bg-elevated-2: #e7dbc0;
+  --color-border: #d9cba8;
+  --color-border-strong: #b9a576;
+  --color-fg: #2b2620;
+  --color-fg-muted: #6b5f4c;
+  --color-fg-dim: #948870;
+  --color-accent: #3f5d3a;
+  --color-accent-dim: #dce3ce;
+  --color-rust: #b0501f;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.font-mono-tight {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Stamped, slightly-crooked status badge, like an ink stamp in a field logbook */
+.status-stamp {
+  display: inline-flex;
+  align-items: center;
+  transform: rotate(-1.5deg);
+  border: 1px dashed var(--color-rust);
+  color: var(--color-rust);
+  border-radius: 2px;
+  padding: 0.15rem 0.5rem;
+}
+
+/* Photo-taped-into-a-journal treatment for media placeholders */
+.journal-frame {
+  position: relative;
+  border: 2px dashed var(--color-border-strong);
+}
+.journal-frame::before,
+.journal-frame::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  width: 44px;
+  height: 20px;
+  background: rgba(176, 80, 31, 0.22);
+  border: 1px solid rgba(176, 80, 31, 0.35);
+}
+.journal-frame::before {
+  left: 22px;
+  transform: rotate(-4deg);
+}
+.journal-frame::after {
+  right: 22px;
+  transform: rotate(3deg);
+}
+
+/* Topographic contour-line rule, used as a decorative underline beneath eyebrow labels */
+.contour-rule {
+  height: 7px;
+  width: 100%;
+  max-width: 8rem;
+  background-repeat: repeat-x;
+  background-size: 20px 7px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='7'%3E%3Cpath d='M0 4 Q5 1 10 4 T20 4' stroke='%23B9A576' stroke-width='1.2' fill='none'/%3E%3C/svg%3E");
+}
+
+.prose :where(h2, h3) {
+  font-family: var(--font-serif) !important;
+}

@@ -1,0 +1,23 @@
+---
+const links = [
+  { label: 'Email', href: 'mailto:arnab.majumder@mail.utoronto.ca' },
+  { label: 'GitHub', href: 'https://github.com/arnabmaj24' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/arnab-majumder-57549b208/' },
+  { label: 'Instagram', href: 'https://www.instagram.com/arnabsalive/' },
+];
+---
+
+<footer class="border-t border-border">
+  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <p class="font-mono-tight text-xs text-fg-dim">© {new Date().getFullYear()} Arnab Majumder</p>
+    <ul class="flex flex-wrap gap-x-6 gap-y-2 font-mono-tight text-xs uppercase tracking-wider text-fg-muted">
+      {links.map((link) => (
+        <li>
+          <a href={link.href} class="transition-colors hover:text-accent" target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</footer>

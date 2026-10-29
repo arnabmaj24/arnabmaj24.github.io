@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Resume" description="Arnab Majumder's resume.">
+  <section class="mx-auto max-w-3xl px-6 py-14">
+    <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Resume</p>
+    <div class="contour-rule mt-2"></div>
+    <h1 class="mt-4 font-serif text-3xl font-semibold text-fg sm:text-4xl">Arnab Majumder</h1>
+    <p class="mt-4 max-w-xl text-fg-muted">
+      The resume is the one-page version. The <a href="/projects" class="text-accent hover:underline">projects</a> section
+      of this site is where the detail lives: photos, process, and results that don't fit on a page.
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href="/resume.pdf"
+        download
+        class="border border-accent bg-accent px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-bg transition-opacity hover:opacity-90"
+      >
+        Download PDF
+      </a>
+      <a
+        href="/resume.pdf"
+        target="_blank"
+        rel="noreferrer"
+        class="border border-border-strong px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg transition-colors hover:border-accent hover:text-accent"
+      >
+        Open in new tab
+      </a>
+    </div>
+
+    <div class="mt-10 border border-dashed border-border-strong bg-bg-elevated p-4">
+      <iframe src="/resume.pdf" title="Resume" class="h-[80vh] w-full border-0"></iframe>
+    </div>
+  </section>
+</Layout>

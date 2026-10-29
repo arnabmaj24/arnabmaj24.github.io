@@ -1,0 +1,56 @@
+---
+title: "Vehicle Stability & Braking Control System"
+kicker: "Aston Dynamics / Controls & Embedded Systems"
+tagline: "A safety-critical trailer braking and stability system built around a deterministic real-time control loop, written in Rust."
+summary: "I designed and built the real-time control-loop architecture for a trailer stability and braking system meant to work across many different tow vehicles instead of being tuned to one. I replaced an earlier asynchronous design with a simpler synchronous, deterministic loop and validated the result on full-scale vehicles in the field."
+status: "Patent-pending · Field-validated"
+year: "Ongoing"
+stack: ["Rust", "C++", "Real-time control loops", "State estimation", "Sensor fusion", "Embedded systems", "Simulation"]
+tags: ["Controls", "Embedded", "Rust", "Safety-Critical", "Vehicle Dynamics"]
+role:
+  - "Designed the real-time control-loop architecture end to end"
+  - "Replaced the previous asynchronous design with a deterministic, synchronous control loop"
+  - "Built the state estimation pipeline from onboard sensor data"
+  - "Owned control tuning, calibration, and fault/error handling"
+  - "Led full-scale vehicle testing in Australia: planning, firmware updates, field debugging, tuning, and data review"
+links: []
+confidential: true
+featured: true
+size: "full"
+order: 1
+coverLabel: "Trailer sway on wet pavement, the problem this system corrects for"
+coverSrc: "/media/projects/stability-control/trailer-sway.jpg"
+coverKind: "image"
+---
+
+## The problem
+
+Trailer braking and stability systems are usually built around one tow vehicle. The control logic gets configured and re-tuned for whatever truck or trailer combination it's attached to. That doesn't scale, and it's fragile: change the vehicle and you're back to re-tuning.
+
+The system I worked on is meant to be vehicle-agnostic instead. It has to estimate what the vehicle and trailer are actually doing from onboard sensors and respond correctly, without a setup step that hardcodes assumptions about a specific tow vehicle. On top of that, it's a safety-critical system, so the control loop has to be predictable under real driving conditions, not just correct on average.
+
+## How I approached it
+
+The control loop itself is where I spent most of my time. The system I inherited was built around an asynchronous architecture: logically flexible, but hard to reason about when you need hard guarantees on timing and ordering for a safety system. I redesigned it around a synchronous, deterministic loop instead: every cycle does the same fixed sequence of read → estimate → decide → actuate, on a fixed schedule, with no ambiguity about what ran when.
+
+Around that loop, I built the state estimation that turns raw sensor signals into a picture of what the vehicle is actually doing, and the control logic that decides how to respond. I can't get into the specifics of the estimation or intervention logic here since that part is patent-pending, but the architecture, the timing model, and the fault handling around it are mine end to end.
+
+## Hardest problem
+
+Determinism was the easy part to *decide on* and the hard part to *build correctly*. A synchronous loop is only as good as its worst-case timing. Every sensor read, every calculation, every actuation command has to fit inside the cycle budget, every time, including when a sensor is noisy or briefly drops out. Getting fault handling right (what does the loop do when an input is missing, stale, or out of range, on a system that's controlling brakes) took as much work as the control logic itself.
+
+The other constant challenge was generality. It's much easier to build something that works well on one specific truck-and-trailer combination than something that has to behave correctly across a wide range of vehicles it's never seen configuration data for.
+
+## Build & testing process
+
+This wasn't a system I was content to leave in simulation. I ran extensive simulation to validate the estimation and control logic before ever touching a real vehicle, but the real test was full-scale field validation, including a testing trip to Australia, where I was responsible for the full loop: test planning and logistics, firmware updates in the field, controller tuning, running the actual test sessions, reviewing the resulting data, and diagnosing what didn't behave the way simulation predicted.
+
+Field testing surfaces failure modes that never show up in simulation: sensor behavior on real road surfaces, timing edge cases under real load, things that only happen once you put the system on an actual vehicle. Iterating on those was most of the value of the trip.
+
+## Result
+
+The system has been validated through full-scale vehicle testing, with the control architecture designed to generalize across tow vehicles rather than being configured per-vehicle. The underlying work is patent-pending.
+
+## What I learned
+
+Simulation tells you your control law is correct. It doesn't tell you your system is safe. Most of the real engineering here was in the parts that don't show up in a block diagram: fault handling, timing guarantees, what happens when a sensor gives you garbage for one cycle. A synchronous, deterministic architecture made all of that dramatically easier to reason about than the asynchronous system it replaced, even though it sounds like the "simpler" choice on paper.

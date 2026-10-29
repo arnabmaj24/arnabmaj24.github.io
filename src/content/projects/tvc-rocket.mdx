@@ -1,0 +1,42 @@
+---
+title: "Thrust Vector Controlled Rocket"
+kicker: "Team of 6 / Design, Manufacturing & Controls"
+tagline: "A team-built model rocket with active thrust vector control, aimed at propulsive ascent and a controlled landing instead of passive fin stability."
+summary: "Working with a team of six, I designed and manufactured the mechanical body and thrust-vectoring mechanism for a model-scale rocket. The rocket's guidance stack fuses IMU and magnetometer data through an Unscented Kalman Filter for pose estimation, feeding a PID attitude controller that corrects trajectory in flight."
+status: "Prototype · Team project"
+year: "Personal project"
+stack: ["Onshape CAD", "Mechanical Design & Manufacturing", "Guidance, Navigation & Control", "Unscented Kalman Filter", "PID Control", "Embedded Firmware"]
+tags: ["Controls", "Mechanical", "Embedded", "State Estimation"]
+role:
+  - "Designed the mechanical body and thrust-vectoring mechanism"
+  - "Iterated multiple TVC mechanism designs in Onshape against the team's optimization constraints and requirements"
+  - "Also contributed to the GNC implementation and controller tuning alongside the team"
+  - "Worked within a 6-person team spanning GNC, embedded firmware, and manufacturing"
+links: []
+confidential: false
+featured: true
+size: "full"
+order: 4
+coverLabel: "TVC mechanism on test stand"
+coverKind: "video"
+---
+
+## The problem
+
+Passive fin-stabilized model rockets are simple, but they don't correct for disturbances in flight. Six of us set out to build a model-scale rocket with active thrust vector control instead, aiming for a propulsive ascent and a controlled landing rather than just stable flight.
+
+## My role
+
+Mechanical design and manufacturing was mine: the rocket body and the mechanism that actually gimbals the motor. I went through multiple mechanism iterations in Onshape, working against the optimization constraints and requirements the team had set for gimbal range, actuator mounting, and mass budget. I also worked alongside the team on the GNC side, contributing to the control implementation and tuning rather than just handing off a mechanism and walking away.
+
+## How the system worked
+
+The rocket's guidance stack fuses IMU and magnetometer data through an Unscented Kalman Filter to estimate pose in flight, feeding a PID attitude controller that commands the gimbal to correct trajectory. My focus was making sure the mechanism could actually deliver the range and speed the controller needed, and tuning the controller against what the hardware could really do.
+
+## Hardest problem
+
+The mechanical constraint that mattered most was fitting a gimbal with enough range and actuator authority into the mass and space budget of a model rocket, without adding so much weight that it worked against the ascent it was supposed to be correcting. Designing a mechanism to satisfy someone else's control requirements, instead of the other way around, is a different discipline than mechanical design in isolation.
+
+## What I learned
+
+A mechanism is only as good as its integration with the system commanding it. Gimbal range and actuator bandwidth aren't just mechanical specs, they're control requirements, and getting them wrong means the controller can't do its job no matter how good the estimation is.

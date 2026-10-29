@@ -1,0 +1,50 @@
+---
+title: "Embedded Hardware Product: Concept to Beta"
+kicker: "Aston Dynamics / Product Development"
+tagline: "End-to-end ownership of a new embedded product: architecture, PCB, and firmware, from a blank sheet to beta testing."
+summary: "I led development of a new embedded hardware product, owning essentially the entire technical system apart from the external mechanical housing: electrical architecture, component selection, PCB design across multiple revisions, firmware, BLE communications, and power management. The product has gone from a blank sheet to small-scale beta testing, with production planned around 5,000 units a year."
+status: "Beta · Targeting ~5,000 units/yr"
+year: "Ongoing"
+stack: ["C / C++", "ESP-IDF", "ESP32", "BLE", "PCB design & layout", "Power architecture", "Embedded firmware"]
+tags: ["Embedded", "PCB", "Electronics", "Firmware", "Product Development"]
+role:
+  - "Owned the overall electrical architecture and component selection"
+  - "Designed the schematics and PCB layout across multiple revisions"
+  - "Wrote the firmware: sensor drivers, BLE communications, power management"
+  - "Did board bring-up, soldering, and hardware debugging myself"
+  - "Drove testing, validation, and iteration through to beta"
+links: []
+confidential: true
+featured: true
+size: "full"
+order: 2
+coverLabel: "Embedded product hardware"
+coverSrc: "/media/projects/embedded-product/bringup-1.jpg"
+coverKind: "image"
+---
+
+## The problem
+
+The product needed to exist as a physical device: battery-powered, sensor-driven, communicating over BLE. Someone needed to own the entire technical system to get it there. Apart from the external mechanical housing, that was me: picking the architecture, choosing the components, laying out the board, and writing the firmware that runs on it.
+
+## How I approached it
+
+I started from the electrical architecture: what has to talk to what, where the power budget goes, what the BLE and sensor requirements mean for component choice, before any schematic existed. From there it was schematic capture, PCB layout, and iterating: each revision fixed problems the last one exposed, whether that was a power sequencing issue, a signal integrity problem, or just a part that turned out to be the wrong choice once it was on a real board.
+
+On the firmware side, I wrote the sensor drivers, the BLE communication stack, and the power management logic, with low-power operation as a constant constraint rather than an afterthought. This is a battery-powered device, so idle current draw mattered as much as anything else.
+
+## Hardest problem
+
+Power architecture was the hardest part to get right, because it touches everything else: sensor sampling strategy, BLE connection intervals, sleep modes, all trade off against battery life in ways that are easy to get wrong on paper and expensive to fix after fab. The other constant difficulty was ordinary hardware bring-up: a board that's fine in the schematic can still have real problems the first time it's powered on, and finding those meant sitting at a bench with a multimeter and an oscilloscope, not just re-reading the design.
+
+## Build & iteration process
+
+The board went through multiple PCB revisions, each one bring-up-tested and debugged by hand: soldering rework, tracing signal issues, validating power rails, before moving to the next spin. Firmware development happened in parallel, so bring-up on a new revision usually meant validating both the hardware and the firmware changes against it at the same time.
+
+## Result
+
+The product has moved from a blank-sheet concept through PCB and firmware development into small-scale beta testing, with planned commercial production on the order of 5,000 units per year.
+
+## What I learned
+
+Hardware iteration is slow and expensive compared to software in a way that changes how you work. A layout mistake doesn't get caught by a test suite. It gets caught weeks later when the boards come back from fab. That pushed me to front-load a lot more design review and simulation before committing to a spin, and to treat bring-up as a first-class part of the schedule instead of a formality after "the design is done."

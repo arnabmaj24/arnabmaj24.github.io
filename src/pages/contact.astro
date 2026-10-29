@@ -1,0 +1,34 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const links = [
+  { label: 'Email (work / recruiting)', value: 'arnab.majumder@mail.utoronto.ca', href: 'mailto:arnab.majumder@mail.utoronto.ca' },
+  { label: 'LinkedIn', value: 'arnab-majumder', href: 'https://www.linkedin.com/in/arnab-majumder-57549b208/' },
+  { label: 'GitHub', value: 'arnabmaj24', href: 'https://github.com/arnabmaj24' },
+  { label: 'Instagram', value: '@arnabsalive', href: 'https://www.instagram.com/arnabsalive/' },
+  { label: 'Email (content / brand)', value: 'arnabsalive@gmail.com', href: 'mailto:arnabsalive@gmail.com' },
+];
+---
+
+<Layout title="Contact" description="Get in touch with Arnab Majumder.">
+  <section class="mx-auto max-w-3xl px-6 py-14">
+    <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Contact</p>
+    <div class="contour-rule mt-2"></div>
+    <h1 class="mt-4 font-serif text-3xl font-semibold text-fg sm:text-4xl">Let's talk</h1>
+    <p class="mt-4 max-w-xl text-fg-muted">
+      Best way to reach me is email or LinkedIn. Use the work email for roles, recruiting, or anything
+      engineering. Use the content email for anything about @arnabsalive.
+    </p>
+
+    <ul class="mt-10 divide-y divide-border border-y border-border">
+      {links.map((l) => (
+        <li>
+          <a href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" class="group flex items-center justify-between py-4 transition-colors hover:text-accent">
+            <span class="font-mono-tight text-sm uppercase tracking-wider text-fg-dim group-hover:text-accent">{l.label}</span>
+            <span class="text-fg">{l.value} ↗</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>

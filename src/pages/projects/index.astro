@@ -1,0 +1,62 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const full = projects.filter((p) => p.data.size === 'full');
+const compact = projects.filter((p) => p.data.size === 'compact');
+---
+
+<Layout title="Projects" description="Robotics, controls, and embedded systems projects, from vehicle stability control to embedded product development.">
+  <section class="mx-auto max-w-6xl px-6 py-14">
+    <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Projects</p>
+    <div class="contour-rule mt-2"></div>
+    <h1 class="mt-4 font-serif text-3xl font-semibold text-fg sm:text-4xl">Things I've built</h1>
+    <p class="mt-3 max-w-xl text-fg-muted">
+      Controls, embedded software, and hardware. Some of this shipped for an employer and is presented as a
+      sanitized case study. Some is code you can go read yourself.
+    </p>
+
+    <div class="mt-12 grid gap-6 sm:grid-cols-2">
+      {full.map((project) => (
+        <ProjectCard
+          slug={project.id}
+          title={project.data.title}
+          kicker={project.data.kicker}
+          tagline={project.data.tagline}
+          tags={project.data.tags}
+          status={project.data.status}
+          coverLabel={project.data.coverLabel}
+          coverSrc={project.data.coverSrc}
+          coverKind={project.data.coverKind}
+          confidential={project.data.confidential}
+        />
+      ))}
+    </div>
+
+    {compact.length > 0 && (
+      <>
+        <h2 class="mt-16 font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Other builds</h2>
+        <div class="contour-rule mt-2"></div>
+        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {compact.map((project) => (
+            <ProjectCard
+              slug={project.id}
+              title={project.data.title}
+              kicker={project.data.kicker}
+              tagline={project.data.tagline}
+              tags={project.data.tags}
+              status={project.data.status}
+              coverLabel={project.data.coverLabel}
+              coverSrc={project.data.coverSrc}
+              coverKind={project.data.coverKind}
+              confidential={project.data.confidential}
+              compact
+            />
+          ))}
+        </div>
+      </>
+    )}
+  </section>
+</Layout>

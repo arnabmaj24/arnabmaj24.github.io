@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MediaSlot from '../components/MediaSlot.astro';
+---
+
+<Layout title="About" description="Arnab Majumder. Robotics Engineering student at the University of Toronto, Controls & Embedded Systems Engineer at Aston Dynamics.">
+  <section class="mx-auto max-w-3xl px-6 py-14">
+    <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">About</p>
+    <div class="contour-rule mt-2"></div>
+    <h1 class="mt-4 font-serif text-3xl font-semibold text-fg sm:text-4xl">Arnab Majumder</h1>
+
+    <div class="mt-8 max-w-xs">
+      <MediaSlot label="Headshot" src="/media/about/headshot.jpg" aspect="aspect-square" />
+    </div>
+
+    <div class="mt-8 space-y-5 text-fg-muted">
+      <p>
+        I'm an Engineering Science student at the University of Toronto, specializing in Robotics Engineering
+        (graduating 2027). I'm a Controls & Embedded Systems Engineer at Aston Dynamics, where my work spans
+        feedback control, embedded firmware, electronics, and product development. I like engineering where
+        the software has to deal with a physical system that pushes back.
+      </p>
+      <p>
+        I like working across disciplines rather than staying in one lane. Modeling a system, writing the
+        control logic, building the electronics it runs on, and then testing the whole thing outside a lab is
+        more interesting to me than any one piece of that on its own. I also mentor a FIRST Robotics team,
+        teaching students CAD and manufacturing.
+      </p>
+      <p>
+        Outside of engineering, I'm a full-time engineering student who also travels a lot: over 100 days abroad
+        so far while studying and working. I make short-form content about it as
+        <a href="https://www.instagram.com/arnabsalive/" target="_blank" rel="noreferrer" class="text-accent hover:underline"> @arnabsalive</a>,
+        reaching 1M+ views a month. Most of it is the actual logistics: budgeting, time management, figuring out
+        how to have an ambitious career without putting the rest of life on hold. It's not a separate identity
+        from the engineering. It's the same instinct to build something and put it out into the world.
+      </p>
+    </div>
+
+    <div class="mt-6 max-w-xs">
+      <MediaSlot label="Somewhere in the Alps" src="/media/travel/alps-portrait.jpg" aspect="aspect-[4/5]" class="rotate-[-1deg]" />
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a href="/resume" class="border border-border-strong px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg transition-colors hover:border-accent hover:text-accent">
+        Resume
+      </a>
+      <a href="/contact" class="border border-border-strong px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg transition-colors hover:border-accent hover:text-accent">
+        Contact
+      </a>
+    </div>
+  </section>
+</Layout>
