@@ -3,15 +3,19 @@ import { getCollection, render } from 'astro:content';
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 
 export async function getStaticPaths() {
-  const projects = await getCollection('projects');
-  return projects.map((project) => ({
+  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  return projects.map((project, i) => ({
     params: { slug: project.id },
-    props: { project },
+    props: {
+      project,
+      prev: i > 0 ? { slug: projects[i - 1].id, title: projects[i - 1].data.title } : undefined,
+      next: i < projects.length - 1 ? { slug: projects[i + 1].id, title: projects[i + 1].data.title } : undefined,
+    },
   }));
 }
 
-const { project } = Astro.props;
-const { Content } = await render(project);
+const { project, prev, next } = Astro.props;
+const { Content, headings } = await render(project);
 const { data } = project;
 ---
 
@@ -22,15 +26,21 @@ const { data } = project;
   summary={data.summary}
   status={data.status}
   year={data.year}
+  team={data.team}
   stack={data.stack}
   tags={data.tags}
   role={data.role}
   links={data.links}
+  highlights={data.highlights}
   confidential={data.confidential}
   size={data.size}
   coverLabel={data.coverLabel}
   coverSrc={data.coverSrc}
   coverKind={data.coverKind}
+  coverFit={data.coverFit}
+  headings={headings}
+  prev={prev}
+  next={next}
 >
   <Content />
 </ProjectLayout>

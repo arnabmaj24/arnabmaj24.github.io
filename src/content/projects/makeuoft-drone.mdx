@@ -10,14 +10,22 @@ tags: ["Robotics", "Autonomy", "Mechanical", "Computer Vision", "Hackathon"]
 role:
   - "Owned mechanical design and manufacturing: CAD and the physical build"
   - "Worked in a 3-person team under a strict 24-hour build"
-  - "Contributed to the fiducial-marker-based pose estimation used for autonomous following"
 links: []
 confidential: false
-featured: true
+featured: false
 size: "full"
-order: 3
-coverLabel: "Drone in autonomous indoor flight"
-coverKind: "video"
+order: 8
+coverLabel: "Our team with the drone at MakeUofT"
+coverSrc: "/media/projects/makeuoft-drone/team.jpg"
+coverKind: "image"
+group: "team"
+team: "3-person team"
+highlights:
+  - value: "24 h"
+    label: "from nothing to indoor autonomous flight"
+  - value: "CAD + build"
+    label: "my part of the team"
+coverFit: "contain"
 ---
 
 ## The idea
@@ -30,7 +38,7 @@ We split the work by what each of us was best at. Mine was mechanical: I designe
 
 ## How it worked
 
-The drone ran PX4 on a Raspberry Pi under ROS 2, estimating its position indoors with an Extended Kalman Filter fusing IMU data with optical flow and lidar for altitude. To follow a person around, it tracked fiducial markers on a helmet and used PID control to hold position relative to them.
+My teammates' software ran PX4 on a Raspberry Pi under ROS 2, estimating its position indoors with an Extended Kalman Filter fusing IMU data with optical flow and lidar for altitude. To follow a person around, it tracked fiducial markers on a helmet and used PID control to hold position relative to them.
 
 ## What went wrong
 

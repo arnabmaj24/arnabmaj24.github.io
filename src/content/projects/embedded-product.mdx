@@ -1,50 +1,57 @@
 ---
-title: "Embedded Hardware Product: Concept to Beta"
-kicker: "Aston Dynamics / Product Development"
-tagline: "End-to-end ownership of a new embedded product: architecture, PCB, and firmware, from a blank sheet to beta testing."
-summary: "I led development of a new embedded hardware product, owning essentially the entire technical system apart from the external mechanical housing: electrical architecture, component selection, PCB design across multiple revisions, firmware, BLE communications, and power management. The product has gone from a blank sheet to small-scale beta testing, with production planned around 5,000 units a year."
-status: "Beta · Targeting ~5,000 units/yr"
+title: "Battery-Powered BLE Product: Concept to Beta"
+kicker: "Aston Dynamics / Electronics & Firmware"
+tagline: "All the electronics and firmware for a battery-powered Bluetooth device, from part selection to a 30-unit customer beta."
+summary: "I did all the electronics and firmware for a battery-powered Bluetooth product at Aston Dynamics: scoping, electrical architecture, part selection, a chip-down ESP32-C3 board in KiCad, bring-up, and the firmware, which went from C to Rust on ESP-IDF. It's in a 30-unit customer beta, runs 8–12 months on a battery, and is planned for 5,000 units a year."
+status: "30-unit customer beta"
 year: "Ongoing"
-stack: ["C / C++", "ESP-IDF", "ESP32", "BLE", "PCB design & layout", "Power architecture", "Embedded firmware"]
+stack: ["Rust", "C", "ESP-IDF", "ESP32-C3", "BLE GATT", "KiCad", "Onshape"]
 tags: ["Embedded", "PCB", "Electronics", "Firmware", "Product Development"]
 role:
-  - "Owned the overall electrical architecture and component selection"
-  - "Designed the schematics and PCB layout across multiple revisions"
-  - "Wrote the firmware: sensor drivers, BLE communications, power management"
-  - "Did board bring-up, soldering, and hardware debugging myself"
-  - "Drove testing, validation, and iteration through to beta"
+  - "Scoped the product and defined its electrical architecture: power, microcontroller, sensors, Bluetooth"
+  - "Chose the parts and designed the chip-down ESP32-C3 schematic and PCB in KiCad, with DFM and design for cost"
+  - "Brought up and debugged every board revision"
+  - "Wrote the firmware, first in C and then in Rust on ESP-IDF"
+  - "Wrote fault-tolerant Bluetooth over-the-air updates"
+  - "Wrote the bring-up and commissioning playbook"
 links: []
-confidential: true
+confidential: false
 featured: true
 size: "full"
-order: 2
-coverLabel: "Embedded product hardware"
+order: 3
+coverLabel: "Board bring-up"
 coverSrc: "/media/projects/embedded-product/bringup-1.jpg"
 coverKind: "image"
+group: "work"
+team: "Aston Dynamics"
+highlights:
+  - value: "30 units"
+    label: "in customer beta"
+  - value: "8–12 months"
+    label: "on one battery"
+  - value: "Chip-down"
+    label: "ESP32-C3 board, designed in KiCad"
 ---
 
 ## The problem
 
-The product needed to exist as a physical device: battery-powered, sensor-driven, communicating over BLE. Someone needed to own the entire technical system to get it there. Apart from the external mechanical housing, that was me: picking the architecture, choosing the components, laying out the board, and writing the firmware that runs on it.
+The product is a small battery-powered sensor that talks to a phone over Bluetooth. Apart from the external housing, where I only did some of the design in Onshape, the whole technical system was mine: what it needs to do, what it's built from, the board, and the firmware that runs on it.
 
-## How I approached it
+## Hardware
 
-I started from the electrical architecture: what has to talk to what, where the power budget goes, what the BLE and sensor requirements mean for component choice, before any schematic existed. From there it was schematic capture, PCB layout, and iterating: each revision fixed problems the last one exposed, whether that was a power sequencing issue, a signal integrity problem, or just a part that turned out to be the wrong choice once it was on a real board.
+I started from the electrical architecture (power, microcontroller, sensors, Bluetooth) and the power budget, before any schematic existed. The board is a chip-down ESP32-C3 design: the bare chip laid out on my own PCB rather than a pre-built module. I chose the parts, drew the schematic and laid out the PCB in KiCad with manufacturing and cost in mind, and brought up each revision on the bench with a multimeter and an oscilloscope.
 
-On the firmware side, I wrote the sensor drivers, the BLE communication stack, and the power management logic, with low-power operation as a constant constraint rather than an afterthought. This is a battery-powered device, so idle current draw mattered as much as anything else.
+## Firmware
 
-## Hardest problem
+The firmware started in C on ESP-IDF and is now in Rust. It has:
 
-Power architecture was the hardest part to get right, because it touches everything else: sensor sampling strategy, BLE connection intervals, sleep modes, all trade off against battery life in ways that are easy to get wrong on paper and expensive to fix after fab. The other constant difficulty was ordinary hardware bring-up: a board that's fine in the schematic can still have real problems the first time it's powered on, and finding those meant sitting at a bench with a multimeter and an oscilloscope, not just re-reading the design.
+- A Bluetooth GATT service for live readings and calibration.
+- Low-power IMU modes and a software shutdown, which together get the battery to 8–12 months at its expected daily use.
+- Calibration that persists in flash, through a small key-value store I wrote that serializes settings into fixed-size buffers with serde and postcard.
+- Over-the-air updates over Bluetooth that recover from lost packets. An 8 KB ring buffer sits between the Bluetooth write callback and the task that writes flash. The device acknowledges cumulatively every 50 ms, sends a negative acknowledgement when it sees a gap, re-acknowledges as a keepalive, and checks the whole image's CRC before it's ever used.
 
-## Build & iteration process
-
-The board went through multiple PCB revisions, each one bring-up-tested and debugged by hand: soldering rework, tracing signal issues, validating power rails, before moving to the next spin. Firmware development happened in parallel, so bring-up on a new revision usually meant validating both the hardware and the firmware changes against it at the same time.
+I also wrote the bring-up and commissioning playbook: hardware and toolchain setup, building and flashing, what a healthy first boot looks like, feature checks (serial log, Bluetooth, a never-calibrated unit, a bare IMU test) and how to push an over-the-air release.
 
 ## Result
 
-The product has moved from a blank-sheet concept through PCB and firmware development into small-scale beta testing, with planned commercial production on the order of 5,000 units per year.
-
-## What I learned
-
-Hardware iteration is slow and expensive compared to software in a way that changes how you work. A layout mistake doesn't get caught by a test suite. It gets caught weeks later when the boards come back from fab. That pushed me to front-load a lot more design review and simulation before committing to a spin, and to treat bring-up as a first-class part of the schedule instead of a formality after "the design is done."
+The product is in a 30-unit customer beta. Production is planned at about 5,000 units a year once the enclosure tooling is done.

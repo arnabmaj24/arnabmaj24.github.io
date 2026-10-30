@@ -1,0 +1,34 @@
+---
+// Headline results for a project. "tiles" for the project page header, "inline" for cards.
+interface Props {
+  items: { value: string; label: string }[];
+  variant?: 'tiles' | 'inline';
+  max?: number;
+}
+const { items, variant = 'tiles', max } = Astro.props;
+const shown = max ? items.slice(0, max) : items;
+---
+
+{
+  shown.length > 0 &&
+    (variant === 'tiles' ? (
+      <dl class:list={['grid gap-3', shown.length === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : shown.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2']}>
+        {shown.map((h) => (
+          <div class="border border-border bg-bg-elevated px-4 py-3">
+            <dt class="sr-only">{h.label}</dt>
+            <dd class="font-mono-tight text-2xl font-semibold text-accent">{h.value}</dd>
+            <dd class="mt-1 text-sm leading-snug text-fg-muted">{h.label}</dd>
+          </div>
+        ))}
+      </dl>
+    ) : (
+      <ul class="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+        {shown.map((h) => (
+          <li class="leading-snug">
+            <span class="font-mono-tight text-base font-semibold text-accent">{h.value}</span>
+            <span class="block text-xs text-fg-muted">{h.label}</span>
+          </li>
+        ))}
+      </ul>
+    ))
+}

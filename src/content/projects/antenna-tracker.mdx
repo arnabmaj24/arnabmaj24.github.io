@@ -1,0 +1,52 @@
+---
+title: "Antenna-Tracking Ground Station"
+kicker: "UofT Aerospace Team / Unmanned Aircraft Systems"
+tagline: "A 2-axis turret that keeps the ground antenna pointed at a moving drone, cutting flyby link dropouts 8×."
+summary: "Link dropouts during flybys kept triggering the drone's PX4 link-loss failsafe, which sends it back to base. I built a 2-axis antenna-tracking turret with ESP32 firmware in C++ on micro-ROS. It works out yaw and pitch from the drone's position, aims at where the drone is about to be, and took failsafe returns from 4+ an hour to about one every two hours."
+status: "Flight-tested"
+year: "Sep 2023 – Mar 2025"
+stack: ["C++", "ESP32", "micro-ROS", "ROS", "PX4", "Gazebo", "URDF", "PID control"]
+tags: ["Robotics", "Embedded", "Controls", "UAV"]
+role:
+  - "Built the 2-axis turret: 360° yaw, 180° pitch"
+  - "Wrote its ESP32 firmware in C++ as a micro-ROS node"
+  - "Solved the pan-tilt inverse kinematics from the drone's PX4 position"
+  - "Aimed ahead of the drone by extrapolating its path from telemetry"
+  - "Simulated the turret tracking the drone in Gazebo"
+links: []
+confidential: false
+featured: false
+size: "full"
+order: 5
+coverLabel: "Antenna-tracking turret"
+coverKind: "image"
+group: "team"
+team: "UofT Aerospace Team"
+highlights:
+  - value: "8×"
+    label: "fewer link-loss returns during flybys"
+  - value: "4+ → 0.5"
+    label: "failsafe returns per hour"
+  - value: "360° / 180°"
+    label: "yaw / pitch range"
+---
+
+## The problem
+
+Our drone talks to the ground station over a directional antenna. During fast flybys the antenna couldn't keep up, the link dropped, and PX4's link-loss failsafe sent the drone back to base more than four times an hour. Every return cut a test flight short.
+
+## What I built
+
+A 2-axis turret (360° of yaw, 180° of pitch) that carries the antenna and points it at the drone. The turret's own position is fixed and entered by hand. The drone's GPS position from PX4 comes in as telemetry over ROS, and the turret's ESP32 runs micro-ROS so it can subscribe to it directly.
+
+From the two positions, the firmware works out the yaw and pitch angles (the inverse kinematics of a pan-tilt) and drives both axes with a PID loop using quaternion math. The servos have encoders, and those gave a more reliable pointing estimate than the turret's IMU, especially in yaw, so the loop runs on encoder feedback. The servo drivers were bought, not built.
+
+## Aiming ahead
+
+Pointing at where the drone *was* isn't good enough: by the time the telemetry arrives and the servos slew, it has moved. So the firmware extrapolates the drone's path from its velocity and recent trajectory in the telemetry and aims at where it's about to be.
+
+Before it went near the field, I simulated the turret tracking the drone in Gazebo, using a URDF model of the turret.
+
+## Result
+
+Failsafe returns from link dropouts went from more than 4 an hour to about 1 every 2 hours: 8× fewer.

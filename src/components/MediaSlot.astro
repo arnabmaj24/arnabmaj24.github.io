@@ -10,16 +10,19 @@ interface Props {
   // Set false when this sits inside a link (e.g. a card) so the play/scrub bar
   // doesn't fight with the surrounding <a> for clicks.
   controls?: boolean;
+  // "contain" letterboxes the media (portrait photos) instead of cropping it to the frame.
+  fit?: 'cover' | 'contain';
 }
 
-const { src, kind = 'image', label, aspect = 'aspect-video', class: className = '', controls = true } = Astro.props;
+const { src, kind = 'image', label, aspect = 'aspect-video', class: className = '', controls = true, fit = 'cover' } = Astro.props;
+const fitClass = fit === 'contain' ? 'object-contain bg-bg-elevated-2' : 'object-cover';
 ---
 
 {
   src ? (
     kind === 'video' ? (
       <video
-        class:list={[aspect, 'w-full rounded-sm border border-border object-cover', className]}
+        class:list={[aspect, 'w-full rounded-sm border border-border', fitClass, className]}
         src={src}
         autoplay
         muted
@@ -28,7 +31,7 @@ const { src, kind = 'image', label, aspect = 'aspect-video', class: className = 
         controls={controls}
       />
     ) : (
-      <img class:list={[aspect, 'w-full rounded-sm border border-border object-cover', className]} src={src} alt={label} />
+      <img class:list={[aspect, 'w-full rounded-sm border border-border', fitClass, className]} src={src} alt={label} loading="lazy" />
     )
   ) : (
     <div

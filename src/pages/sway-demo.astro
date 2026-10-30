@@ -1,0 +1,581 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Trailer Sway Demo"
+  description="An interactive truck-trailer sway demo: a steering-impulse test at constant speed, with and without a sway controller that detects sway and brakes the trailer."
+>
+  <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+    <a href="/projects/stability-control" class="font-mono-tight text-xs uppercase tracking-wider text-fg-muted hover:text-accent">
+      ← Brake controller project
+    </a>
+    <p class="mt-6 font-mono-tight text-xs uppercase tracking-wider text-accent">Interactive demo</p>
+    <div class="contour-rule mt-2"></div>
+    <h1 class="mt-4 max-w-3xl font-serif text-3xl font-semibold leading-tight text-fg sm:text-4xl">
+      Trailer sway, with and without sway control
+    </h1>
+    <p class="mt-4 max-w-3xl text-fg-muted">
+      This is based on ISO 9815, the standard lateral-stability test for car-trailer combinations, and the same kind of
+      steering-impulse test I use to measure sway damping on real vehicles: drive at a steady speed, give one quick
+      steering input, and watch how the trailer settles. Here the steering input is a swerve around a tire in the lane.
+      Lower the tongue weight or raise the speed and the trailer stops settling on its own. The bottom rig has a sway
+      controller that watches the trailer's motion, decides it's swaying, and brakes the trailer to pull it straight.
+    </p>
+
+    <!-- Controls -->
+    <div class="mt-8 grid gap-6 border border-border bg-bg-elevated p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end sm:p-6">
+      <label class="block">
+        <span class="flex items-baseline justify-between">
+          <span class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Speed</span>
+          <span id="speed-val" class="font-mono-tight text-lg font-semibold text-fg">120 km/h</span>
+        </span>
+        <input id="speed" type="range" min="60" max="140" step="5" value="120" class="mt-3 w-full accent-[var(--color-accent)]" />
+      </label>
+      <label class="block">
+        <span class="flex items-baseline justify-between">
+          <span class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Tongue weight</span>
+          <span id="tongue-val" class="font-mono-tight text-lg font-semibold text-fg">4%</span>
+        </span>
+        <input id="tongue" type="range" min="-5" max="15" step="1" value="4" class="mt-3 w-full accent-[var(--color-accent)]" />
+        <span class="mt-1 block text-xs text-fg-dim">
+          Share of the trailer's weight on the hitch. 10–15% is the usual recommendation; below 0% the trailer is
+          tail-heavy and lifts the hitch.
+        </span>
+      </label>
+      <div class="flex gap-2">
+        <button id="toggle" type="button" class="w-24 border border-accent bg-accent px-4 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-bg hover:opacity-90">
+          Pause
+        </button>
+        <button id="play" type="button" class="border border-border-strong px-4 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg hover:border-accent hover:text-accent">
+          Replay
+        </button>
+        <button id="slow" type="button" aria-pressed="false" class="border border-border-strong px-4 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg hover:border-accent hover:text-accent">
+          0.5×
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 border-t border-border pt-4 sm:col-span-3">
+        <span class="mr-1 font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">Try</span>
+        {
+          [
+            { label: 'Well loaded', speed: 100, tongue: 12 },
+            { label: 'Light tongue', speed: 120, tongue: 4 },
+            { label: 'Tail-heavy', speed: 90, tongue: -3 },
+            { label: 'Worst case', speed: 140, tongue: -5 },
+          ].map((p) => (
+            <button
+              type="button"
+              class="preset rounded-sm border border-border-strong px-3 py-1.5 font-mono-tight text-xs text-fg-muted hover:border-accent hover:text-accent"
+              data-speed={p.speed}
+              data-tongue={p.tongue}
+            >
+              {p.label} <span class="text-fg-dim">· {p.tongue}% · {p.speed} km/h</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Lanes -->
+    <div class="mt-6 space-y-4">
+      <div class="border border-border bg-bg-elevated">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+          <p class="font-mono-tight text-xs uppercase tracking-wider text-fg">Sway control off</p>
+          <p id="off-outcome" class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim"></p>
+        </div>
+        <canvas id="lane-off" class="block h-[150px] w-full sm:h-[170px]"></canvas>
+      </div>
+      <div class="border border-accent bg-bg-elevated">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+          <p class="font-mono-tight text-xs uppercase tracking-wider text-accent">Sway control on</p>
+          <p id="on-outcome" class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim"></p>
+        </div>
+        <canvas id="lane-on" class="block h-[150px] w-full sm:h-[170px]"></canvas>
+        <!-- Detector panel -->
+        <div class="grid gap-4 border-t border-border px-4 py-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+          <ul class="flex flex-wrap gap-2 font-mono-tight text-[11px] uppercase tracking-wider">
+            <li id="chk-osc" class="chk">Oscillating</li>
+            <li id="chk-energy" class="chk">Energy</li>
+            <li id="chk-band" class="chk">Sway band</li>
+          </ul>
+          <div>
+            <div class="flex items-baseline justify-between font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">
+              <span>Latch <span class="normal-case">(+1 when all three agree, −3 otherwise; engage at 8, release at 3)</span></span>
+              <span id="latch-val">0</span>
+            </div>
+            <div class="relative mt-1.5 h-2 w-full overflow-hidden rounded-sm bg-bg-elevated-2">
+              <div id="latch-bar" class="h-full w-0 bg-accent transition-[width] duration-75"></div>
+              <div class="absolute inset-y-0 w-px bg-rust" style="left: 26.67%"></div>
+              <div class="absolute inset-y-0 w-px bg-fg-dim" style="left: 10%"></div>
+            </div>
+          </div>
+          <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">
+            Trailer brake <span id="brake-val" class="ml-1 text-base font-semibold text-fg">0%</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="mt-6 border border-border bg-bg-elevated">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+        <p class="font-mono-tight text-xs uppercase tracking-wider text-fg">
+          Hitch angle (trailer vs. truck heading) <span class="ml-2 normal-case text-fg-dim">drag to scrub</span>
+        </p>
+        <p class="flex gap-4 font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">
+          <span><span class="mr-1 inline-block h-0.5 w-4 bg-rust align-middle"></span>Off</span>
+          <span><span class="mr-1 inline-block h-0.5 w-4 bg-accent align-middle"></span>On</span>
+          <span><span class="mr-1 inline-block h-2.5 w-3 bg-accent-dim align-middle"></span>Controller braking</span>
+        </p>
+      </div>
+      <canvas id="chart" class="block h-[220px] w-full cursor-ew-resize touch-none"></canvas>
+    </div>
+
+    <!-- Explanation -->
+    <div class="mt-10 grid gap-8 lg:grid-cols-2">
+      <div>
+        <h2 class="font-serif text-xl font-medium text-fg">What the controller is doing</h2>
+        <ul class="mt-3 space-y-3 text-sm text-fg-muted">
+          <li><strong class="text-fg">It only listens to the trailer.</strong> No vehicle data: just the trailer's yaw rate, sampled 100 times a second.</li>
+          <li><strong class="text-fg">Three checks have to agree.</strong> The motion has to oscillate, carry real energy (over the last 4 seconds and still in the last one), and sit in the frequency band where trailer sway lives.</li>
+          <li><strong class="text-fg">A latch stops it twitching.</strong> It counts up while the checks agree and down three times as fast when they don't, so the checks have to agree for 80 ms in a row to engage, and it lets go quickly once they stop.</li>
+          <li><strong class="text-fg">Then it brakes the trailer.</strong> Braking the trailer harder than the truck puts the hitch in tension, which pulls the trailer back in line behind the truck, and it sheds the speed that made the rig unstable.</li>
+          <li><strong class="text-fg">It errs on the side of braking.</strong> It's tuned to save every setting on the sliders, down to a tail-heavy trailer at 140 km/h. Catching that case means acting early, so after a sharp swerve at speed it brakes briefly even when the trailer would have settled on its own.</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="font-serif text-xl font-medium text-fg">About this demo</h2>
+        <p class="mt-3 text-sm text-fg-muted">
+          The truck and trailer are rigid bodies joined by a pinned hitch, with one tire per axle and a constraint solver
+          holding the hitch together, all running in your browser (about 4 ms per run). Two things differ from a strict
+          ISO 9815 run, which uses one steering input for every speed and then holds the wheel still: the swerve is sized
+          so the rig dodges the tire at any speed, and a lane-keeping driver (pure pursuit, steering toward the lane centre
+          about 2 seconds ahead) brings both rigs back afterwards, the same in both runs. The vehicle is a typical full-size
+          pickup and travel trailer, not a specific model. The controller re-implements the logic described on the{' '}
+          <a href="/projects/stability-control" class="text-accent hover:underline">project page</a> with demo thresholds:
+          it isn't Aston's production code or tuning, and the numbers here are a model, not test results. The real test
+          results (45% more damping than the top competitor) came from road tests.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .chk {
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    padding: 0.2rem 0.5rem;
+    color: var(--color-fg-dim);
+    transition: all 120ms;
+  }
+  .chk[data-on='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent-dim);
+    color: var(--color-accent);
+  }
+</style>
+
+<script>
+  import { simulate, placeObstacle } from '../lib/swaysim.js';
+
+  type Frame = ReturnType<typeof simulate>['frames'][number];
+  type Run = ReturnType<typeof simulate>;
+
+  const css = getComputedStyle(document.documentElement);
+  const col = (name: string) => css.getPropertyValue(name).trim();
+  const C = {
+    bg: col('--color-bg'),
+    elev: col('--color-bg-elevated'),
+    elev2: col('--color-bg-elevated-2'),
+    border: col('--color-border'),
+    strong: col('--color-border-strong'),
+    fg: col('--color-fg'),
+    muted: col('--color-fg-muted'),
+    dim: col('--color-fg-dim'),
+    accent: col('--color-accent'),
+    accentDim: col('--color-accent-dim'),
+    rust: col('--color-rust'),
+  };
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const speedEl = $<HTMLInputElement>('speed');
+  const tongueEl = $<HTMLInputElement>('tongue');
+  const laneOff = $<HTMLCanvasElement>('lane-off');
+  const laneOn = $<HTMLCanvasElement>('lane-on');
+  const chart = $<HTMLCanvasElement>('chart');
+
+  // Both are set by compute() before anything reads them.
+  let runOff!: Run;
+  let runOn!: Run;
+  let tire = { x: 0, y: 0, r: 0.45 };
+  let t = 0;
+  let playing = true;
+  let rate = 1;
+  let last = 0;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CHART_PAD = { l: 40, r: 12, t: 14, b: 26 };
+  const LANE = 3.7; // m
+  const ROAD_EDGE = LANE * 1.5; // three lanes, rig in the middle one
+
+  function compute() {
+    const params = { speedKmh: +speedEl.value, tongueWeight: +tongueEl.value / 100 };
+    runOff = simulate(params, { controlled: false });
+    runOn = simulate(params, { controlled: true });
+    tire = placeObstacle([runOff, runOn]);
+    $('speed-val').textContent = `${speedEl.value} km/h`;
+    $('tongue-val').textContent = `${tongueEl.value}%`;
+    $('tongue-val').style.color = +tongueEl.value < 0 ? C.rust : '';
+    t = 0;
+    setPlaying(!reduceMotion);
+    if (reduceMotion) t = runOff.params.duration;
+    history.replaceState(null, '', `?speed=${speedEl.value}&tongue=${tongueEl.value}`);
+    drawChart();
+  }
+
+  function setPlaying(v: boolean) {
+    playing = v;
+    $('toggle').textContent = v ? 'Pause' : 'Play';
+  }
+
+  function frameAt(run: Run, time: number): Frame {
+    const f = run.frames;
+    const i = Math.min(Math.floor(time / 0.02), f.length - 1);
+    return f[Math.max(i, 0)];
+  }
+
+  function fit(canvas: HTMLCanvasElement) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    const ctx = canvas.getContext('2d')!;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w, h };
+  }
+
+  function outcome(run: Run) {
+    const f = run.frames;
+    if (run.jackknife) return { text: `Jackknifed at ${run.jackknife.toFixed(1)} s`, color: C.rust };
+    const tail = f.filter((q) => q.t > f[f.length - 1].t - 3).map((q) => Math.abs(q.hitch));
+    const peak = Math.max(...f.map((q) => Math.abs(q.hitch)));
+    const end = Math.max(...tail);
+    const off = f.find((q) => Math.abs(q.y1) > ROAD_EDGE + 1.5);
+    if (off) return { text: `Left the road at ${off.t.toFixed(1)} s`, color: C.rust };
+    if (end > 3) return { text: `Still swaying ±${end.toFixed(0)}° · peak ${peak.toFixed(0)}°`, color: C.rust };
+    return { text: `Settled · peak ${peak.toFixed(1)}°`, color: C.accent };
+  }
+
+  // One lane: top-down view, camera following the truck.
+  function drawLane(canvas: HTMLCanvasElement, run: Run, time: number, controlled: boolean) {
+    const { ctx, w, h } = fit(canvas);
+    const end = run.frames[run.frames.length - 1].t;
+    const f = frameAt(run, Math.min(time, end));
+    const ppm = Math.max(4.2, Math.min(9, w / 60)); // pixels per metre
+    const anchor = w < 640 ? 0.25 : 0.35; // where the truck sits across the view, leaving room to see what's ahead
+    const camX = f.x1 - 6, camY = f.y1 * 0.8;
+    const X = (x: number) => w * anchor + (x - camX) * ppm;
+    const Y = (y: number) => h / 2 - (y - camY) * ppm;
+    const x0 = camX - (w * anchor) / ppm, x1 = camX + (w * (1 - anchor)) / ppm;
+
+    // Three-lane highway; the rig starts in the middle lane, centred on y = 0.
+    ctx.fillStyle = C.elev2;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#e2dbcb';
+    ctx.fillRect(0, Y(ROAD_EDGE + 1.5), w, Y(-ROAD_EDGE - 1.5) - Y(ROAD_EDGE + 1.5)); // shoulders
+    ctx.fillStyle = '#cfc7b6';
+    ctx.fillRect(0, Y(ROAD_EDGE), w, Y(-ROAD_EDGE) - Y(ROAD_EDGE)); // asphalt
+    ctx.strokeStyle = '#f7f3ea';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, Y(ROAD_EDGE)); ctx.lineTo(w, Y(ROAD_EDGE));
+    ctx.moveTo(0, Y(-ROAD_EDGE)); ctx.lineTo(w, Y(-ROAD_EDGE));
+    ctx.stroke();
+    const dash = 3, gap = 9;
+    ctx.beginPath();
+    for (const ly of [LANE / 2, -LANE / 2]) {
+      for (let x = Math.floor(x0 / (dash + gap)) * (dash + gap); x < x1; x += dash + gap) {
+        ctx.moveTo(X(x), Y(ly)); ctx.lineTo(X(x + dash), Y(ly));
+      }
+    }
+    ctx.stroke();
+
+    // The tire in the lane.
+    const tx = X(tire.x), ty = Y(tire.y), tr = tire.r * ppm;
+    if (tx > -20 && tx < w + 20) {
+      ctx.fillStyle = 'rgba(43, 38, 32, 0.18)';
+      ctx.beginPath(); ctx.ellipse(tx + 2, ty + 2, tr, tr, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2b2620';
+      ctx.beginPath(); ctx.arc(tx, ty, tr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#5a5146';
+      ctx.beginPath(); ctx.arc(tx, ty, tr * 0.55, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2b2620';
+      for (const [dx, dy, sz] of [[-1.6, -0.5, 0.18], [-2.4, 0.2, 0.12], [1.2, 0.6, 0.14]]) {
+        ctx.fillRect(X(tire.x + dx), Y(tire.y + dy), sz * ppm, sz * ppm * 0.6);
+      }
+      if (tire.x - f.x1 > 15) {
+        ctx.font = `500 11px "JetBrains Mono", monospace`;
+        ctx.fillStyle = C.rust;
+        ctx.textBaseline = 'bottom';
+        const label = 'tire in the lane';
+        ctx.fillText(label, Math.min(tx - 46, w - ctx.measureText(label).width - 6), ty - tr - 6);
+      }
+    }
+
+    // Trail of the trailer axle.
+    const i = Math.min(Math.floor(time / 0.02), run.frames.length - 1);
+    ctx.fillStyle = controlled ? C.accent : C.rust;
+    const { trailer: R } = run.vehicle;
+    for (let k = Math.max(0, i - 250); k <= i; k += 5) {
+      const q = run.frames[k];
+      const ax = q.x2 - R.e * Math.cos(q.p2), ay = q.y2 - R.e * Math.sin(q.p2);
+      ctx.globalAlpha = 0.08 + 0.35 * ((k - (i - 250)) / 250);
+      ctx.beginPath();
+      ctx.arc(X(ax), Y(ay), 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const body = (cx: number, cy: number, psi: number, draw: () => void) => {
+      ctx.save();
+      ctx.translate(X(cx), Y(cy));
+      ctx.rotate(-psi);
+      ctx.scale(ppm, ppm);
+      draw();
+      ctx.restore();
+    };
+    const rrect = (x: number, y: number, rw: number, rh: number, r: number) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, rw, rh, r);
+    };
+    const wheel = (x: number, y: number, steer = 0) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-steer);
+      ctx.fillStyle = '#2b2620';
+      ctx.fillRect(-0.4, -0.15, 0.8, 0.3);
+      ctx.restore();
+    };
+
+    // Trailer (drawn first, under the truck's hitch).
+    body(f.x2, f.y2, f.p2, () => {
+      const front = R.d - 1.3, len = 6.5;
+      ctx.strokeStyle = C.fg;
+      ctx.lineWidth = 0.12;
+      ctx.beginPath();
+      ctx.moveTo(R.d, 0); ctx.lineTo(front, 0.7); ctx.moveTo(R.d, 0); ctx.lineTo(front, -0.7);
+      ctx.stroke();
+      for (const dx of [-0.5, 0.5]) { wheel(-R.e + dx, 1.25); wheel(-R.e + dx, -1.25); }
+      rrect(front - len, -1.2, len, 2.4, 0.35);
+      ctx.fillStyle = '#efe7d6';
+      ctx.fill();
+      ctx.lineWidth = 0.08;
+      ctx.strokeStyle = C.strong;
+      ctx.stroke();
+      ctx.fillStyle = C.elev2;
+      ctx.fillRect(front - len + 0.8, -0.5, len - 1.6, 1.0);
+      if (f.brake > 0.01) {
+        ctx.fillStyle = `rgba(214, 48, 32, ${0.35 + 0.65 * Math.min(f.brake / 0.6, 1)})`;
+        ctx.fillRect(front - len - 0.12, -1.1, 0.18, 0.6);
+        ctx.fillRect(front - len - 0.12, 0.5, 0.18, 0.6);
+      }
+    });
+
+    // Truck.
+    const { truck: T } = run.vehicle;
+    body(f.x1, f.y1, f.p1, () => {
+      const steer = (f.delta * Math.PI) / 180;
+      wheel(T.a, 0.95, steer); wheel(T.a, -0.95, steer);
+      wheel(-T.b, 0.95); wheel(-T.b, -0.95);
+      rrect(-T.c + 0.15, -1.0, T.c + T.a + 0.9 - 0.15, 2.0, 0.3);
+      ctx.fillStyle = controlled ? C.accent : '#6b5f4c';
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillRect(0.0, -0.85, 1.1, 1.7); // windshield/cab roof
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 0.06;
+      ctx.strokeRect(-T.c + 0.4, -0.8, T.c - 0.6, 1.6); // bed
+    });
+
+    // HUD.
+    ctx.font = `500 11px "JetBrains Mono", monospace`;
+    ctx.textBaseline = 'top';
+    const hud = [`${Math.max(f.speed, 0).toFixed(0)} km/h`, `hitch ${f.hitch >= 0 ? '+' : ''}${f.hitch.toFixed(1)}°`, `lane ${f.y1 >= 0 ? '+' : ''}${f.y1.toFixed(1)} m`, `${Math.min(time, end).toFixed(1)} s`];
+    if (w < 640) {
+      // Phones: one compact line along the top so the readout never covers the rig.
+      ctx.font = `500 10px "JetBrains Mono", monospace`;
+      const line = hud.join('  ');
+      ctx.fillStyle = 'rgba(245, 240, 230, 0.85)';
+      ctx.fillRect(4, 4, ctx.measureText(line).width + 10, 16);
+      ctx.fillStyle = C.fg;
+      ctx.fillText(line, 9, 7);
+    } else {
+      ctx.fillStyle = 'rgba(245, 240, 230, 0.85)';
+      ctx.fillRect(8, 8, 112, 65);
+      ctx.fillStyle = C.fg;
+      hud.forEach((s, k) => ctx.fillText(s, 16, 13 + k * 15));
+    }
+    if (f.t >= 1 && f.t <= 1.8) {
+      ctx.font = `500 11px "JetBrains Mono", monospace`;
+      ctx.fillStyle = C.rust;
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('swerve', 10, h - 8);
+      ctx.textBaseline = 'top';
+    }
+    if (run.jackknife && time >= run.jackknife) {
+      ctx.fillStyle = 'rgba(176, 80, 31, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = C.rust;
+      ctx.font = `600 14px "JetBrains Mono", monospace`;
+      ctx.fillText('JACKKNIFE', 10, h - 26);
+    }
+    return f;
+  }
+
+  function drawChart() {
+    if (!runOff) return;
+    const { ctx, w, h } = fit(chart);
+    const pad = CHART_PAD;
+    const dur = runOff.params.duration;
+    const all = [...runOff.frames, ...runOn.frames].map((q) => Math.abs(q.hitch));
+    const lim = Math.min(60, Math.max(5, Math.ceil(Math.max(...all) / 5) * 5));
+    const X = (s: number) => pad.l + (s / dur) * (w - pad.l - pad.r);
+    const Y = (d: number) => pad.t + (1 - (d + lim) / (2 * lim)) * (h - pad.t - pad.b);
+
+    ctx.clearRect(0, 0, w, h);
+    // Engaged shading.
+    ctx.fillStyle = C.accentDim;
+    let start: number | null = null;
+    for (const q of runOn.frames) {
+      if (q.engaged && start === null) start = q.t;
+      if (!q.engaged && start !== null) { ctx.fillRect(X(start), pad.t, X(q.t) - X(start), h - pad.t - pad.b); start = null; }
+    }
+    if (start !== null) ctx.fillRect(X(start), pad.t, X(runOn.frames[runOn.frames.length - 1].t) - X(start), h - pad.t - pad.b);
+
+    // Grid and labels.
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.fillStyle = C.dim;
+    ctx.font = `500 10px "JetBrains Mono", monospace`;
+    ctx.textBaseline = 'middle';
+    for (const d of [-lim, -lim / 2, 0, lim / 2, lim]) {
+      ctx.beginPath(); ctx.moveTo(pad.l, Y(d)); ctx.lineTo(w - pad.r, Y(d)); ctx.stroke();
+      ctx.fillText(`${d > 0 ? '+' : ''}${d}°`, 4, Y(d));
+    }
+    ctx.textBaseline = 'top';
+    for (let s = 0; s <= dur; s += 2) ctx.fillText(`${s}s`, X(s) - 6, h - pad.b + 8);
+
+    const line = (run: Run, color: string) => {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      run.frames.forEach((q, k) => (k ? ctx.lineTo(X(q.t), Y(q.hitch)) : ctx.moveTo(X(q.t), Y(q.hitch))));
+      ctx.stroke();
+    };
+    line(runOff, C.rust);
+    line(runOn, C.accent);
+    if (runOff.jackknife) {
+      ctx.fillStyle = C.rust;
+      ctx.fillText('✕ jackknife', Math.min(X(runOff.jackknife) + 4, w - 80), pad.t + 2);
+    }
+
+    // Playhead.
+    ctx.strokeStyle = C.fg;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath(); ctx.moveTo(X(Math.min(t, dur)), pad.t); ctx.lineTo(X(Math.min(t, dur)), h - pad.b); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function setChk(id: string, on: boolean) {
+    $(id).dataset.on = String(on);
+  }
+
+  function tick(now: number) {
+    const dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+    last = now;
+    const dur = runOff.params.duration;
+    if (playing) {
+      t += dt * rate;
+      if (t >= dur) { t = dur; setPlaying(false); }
+    }
+    drawLane(laneOff, runOff, t, false);
+    const f = drawLane(laneOn, runOn, t, true);
+    setChk('chk-osc', f.osc);
+    setChk('chk-energy', f.energy);
+    setChk('chk-band', f.band);
+    $('latch-val').textContent = `${f.count}${f.engaged ? ' · engaged' : ''}`;
+    $('latch-bar').style.width = `${Math.min(f.count / 30, 1) * 100}%`;
+    $('brake-val').textContent = `${Math.round(f.brake * 100)}%`;
+    const oo = outcome(runOff), on = outcome(runOn);
+    $('off-outcome').textContent = t >= (runOff.jackknife ?? dur) ? oo.text : '';
+    $('off-outcome').style.color = oo.color;
+    $('on-outcome').textContent = t >= dur ? on.text : '';
+    $('on-outcome').style.color = on.color;
+    drawChart();
+    requestAnimationFrame(tick);
+  }
+
+  speedEl.addEventListener('input', compute);
+  tongueEl.addEventListener('input', compute);
+  $('play').addEventListener('click', () => { t = 0; setPlaying(true); });
+  $('toggle').addEventListener('click', togglePlay);
+  function togglePlay() {
+    if (!playing && t >= runOff.params.duration) t = 0;
+    setPlaying(!playing);
+  }
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target as HTMLElement).tagName;
+    if (e.code === 'Space' && tag !== 'INPUT' && tag !== 'BUTTON') {
+      e.preventDefault();
+      togglePlay();
+    }
+  });
+  document.querySelectorAll<HTMLButtonElement>('.preset').forEach((b) =>
+    b.addEventListener('click', () => {
+      speedEl.value = b.dataset.speed!;
+      tongueEl.value = b.dataset.tongue!;
+      compute();
+    })
+  );
+
+  // Drag on the chart to scrub through the run.
+  let scrubbing = false;
+  const scrubTo = (e: PointerEvent) => {
+    const r = chart.getBoundingClientRect();
+    const frac = (e.clientX - r.left - CHART_PAD.l) / (r.width - CHART_PAD.l - CHART_PAD.r);
+    t = Math.max(0, Math.min(1, frac)) * runOff.params.duration;
+  };
+  chart.addEventListener('pointerdown', (e) => {
+    scrubbing = true;
+    chart.setPointerCapture(e.pointerId);
+    setPlaying(false);
+    scrubTo(e);
+  });
+  chart.addEventListener('pointermove', (e) => scrubbing && scrubTo(e));
+  chart.addEventListener('pointerup', () => (scrubbing = false));
+  $('slow').addEventListener('click', (e) => {
+    rate = rate === 1 ? 0.5 : 1;
+    (e.currentTarget as HTMLElement).setAttribute('aria-pressed', String(rate !== 1));
+    (e.currentTarget as HTMLElement).classList.toggle('!border-accent', rate !== 1);
+    (e.currentTarget as HTMLElement).classList.toggle('!text-accent', rate !== 1);
+  });
+
+  // ?speed=120&tongue=4 opens with those settings (the page keeps the URL in sync, so it can be shared);
+  // ?t=9 opens paused at 9 s.
+  const query = new URLSearchParams(location.search);
+  const clampTo = (el: HTMLInputElement, v: string | null) => {
+    if (v === null || v === '' || Number.isNaN(+v)) return;
+    el.value = String(Math.max(+el.min, Math.min(+el.max, +v)));
+  };
+  clampTo(speedEl, query.get('speed'));
+  clampTo(tongueEl, query.get('tongue'));
+  const startAt = Number(query.get('t'));
+  compute();
+  if (startAt > 0) {
+    t = Math.min(startAt, runOff.params.duration);
+    setPlaying(false);
+  }
+  requestAnimationFrame(tick);
+</script>

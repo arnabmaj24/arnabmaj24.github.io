@@ -1,0 +1,51 @@
+---
+// The test telemetry system, co-built with a teammate (see the project page for who did what).
+---
+
+<figure class="not-prose my-8">
+  <div class="overflow-x-auto rounded-sm border border-border bg-bg-elevated p-3">
+    <svg viewBox="0 0 760 170" class="w-full min-w-[640px]" role="img" aria-labelledby="tm-title">
+      <title id="tm-title">Test telemetry pipeline: controller to receiver to server to dashboard, with SQLite logs replayed offline</title>
+      <defs>
+        <marker id="tm-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--color-accent)" />
+        </marker>
+      </defs>
+      <style>
+        .b { fill: var(--color-bg); stroke: var(--color-border-strong); stroke-width: 1.2; }
+        .t { font: 600 13px var(--font-sans); fill: var(--color-fg); }
+        .s { font: 400 11px var(--font-sans); fill: var(--color-fg-muted); }
+        .l { font: 500 10px var(--font-mono); fill: var(--color-accent); }
+        .a { stroke: var(--color-accent); stroke-width: 1.6; fill: none; }
+      </style>
+      <rect class="b" x="10" y="20" width="140" height="50" rx="3" />
+      <text class="t" x="20" y="42">Controller</text>
+      <text class="s" x="20" y="59">ESP32 under test</text>
+      <rect class="b" x="205" y="20" width="140" height="50" rx="3" />
+      <text class="t" x="215" y="42">USB receiver</text>
+      <text class="s" x="215" y="59">ESP32 firmware, Rust</text>
+      <rect class="b" x="400" y="20" width="150" height="50" rx="3" />
+      <text class="t" x="410" y="42">Server</text>
+      <text class="s" x="410" y="59">Python, FastAPI</text>
+      <rect class="b" x="605" y="20" width="145" height="50" rx="3" />
+      <text class="t" x="615" y="42">Live dashboard</text>
+      <text class="s" x="615" y="59">in the browser</text>
+      <rect class="b" x="400" y="110" width="150" height="50" rx="3" />
+      <text class="t" x="410" y="132">SQLite logs</text>
+      <text class="s" x="410" y="149">~500 hours of testing</text>
+      <rect class="b" x="605" y="110" width="145" height="50" rx="3" />
+      <text class="t" x="615" y="132">Offline tools</text>
+      <text class="s" x="615" y="149">replay through detector</text>
+      <path class="a" d="M150 45 H203" marker-end="url(#tm-arrow)" />
+      <text class="l" x="155" y="38">ESP-NOW</text>
+      <path class="a" d="M345 45 H398" marker-end="url(#tm-arrow)" />
+      <text class="l" x="352" y="38">serial</text>
+      <path class="a" d="M550 45 H603" marker-end="url(#tm-arrow)" />
+      <text class="l" x="553" y="38">WebSocket</text>
+      <path class="a" d="M475 70 V108" marker-end="url(#tm-arrow)" />
+      <path class="a" d="M550 135 H603" marker-end="url(#tm-arrow)" />
+      <text class="l" x="20" y="100">100 Hz</text>
+    </svg>
+  </div>
+  <figcaption class="mt-2 text-xs text-fg-dim">The 100 Hz test telemetry system, co-built with a teammate.</figcaption>
+</figure>

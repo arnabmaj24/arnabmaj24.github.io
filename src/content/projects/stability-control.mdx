@@ -1,56 +1,97 @@
 ---
-title: "Vehicle Stability & Braking Control System"
+title: "Trailer Brake Controller: Control Loop & Sway Control"
 kicker: "Aston Dynamics / Controls & Embedded Systems"
-tagline: "A safety-critical trailer braking and stability system built around a deterministic real-time control loop, written in Rust."
-summary: "I designed and built the real-time control-loop architecture for a trailer stability and braking system meant to work across many different tow vehicles instead of being tuned to one. I replaced an earlier asynchronous design with a simpler synchronous, deterministic loop and validated the result on full-scale vehicles in the field."
-status: "Patent-pending · Field-validated"
-year: "Ongoing"
-stack: ["Rust", "C++", "Real-time control loops", "State estimation", "Sensor fusion", "Embedded systems", "Simulation"]
+tagline: "The 100 Hz control loop and patent-pending sway controller inside the TowPilot and Delta trailer brake controllers, which work on any tow vehicle using only its power and lights."
+summary: "I wrote the 100 Hz control loop of a safety-critical trailer brake controller, first in MISRA C and later migrated to Rust, plus the patent-pending sway controller that runs inside it. The controller is in a customer beta in 4 countries, and in steering-impulse tests it damped trailer sway 45% more than the top competitor's product."
+status: "Customer beta in 4 countries · Patent-pending"
+year: "Mar 2025 – Present"
+stack: ["Rust", "MISRA C", "FreeRTOS", "ESP-IDF", "ESP32-C6", "Extended Kalman Filter", "Python", "Signal processing"]
 tags: ["Controls", "Embedded", "Rust", "Safety-Critical", "Vehicle Dynamics"]
 role:
-  - "Designed the real-time control-loop architecture end to end"
-  - "Replaced the previous asynchronous design with a deterministic, synchronous control loop"
-  - "Built the state estimation pipeline from onboard sensor data"
-  - "Owned control tuning, calibration, and fault/error handling"
-  - "Led full-scale vehicle testing in Australia: planning, firmware updates, field debugging, tuning, and data review"
+  - "Wrote the 100 Hz control loop: MISRA C on ESP-IDF first, later migrated to Rust"
+  - "Moved the loop from async tasks to a deterministic FreeRTOS task"
+  - "Designed the patent-pending sway detector and sway controller"
+  - "Wrote the lamp-circuit processing that tells braking from hazards and turn signals"
+  - "Root-caused and fixed a runaway to full braking"
+  - "Wrote 170+ unit tests and ran the vehicle testing in Australia"
 links: []
-confidential: true
+confidential: false
 featured: true
 size: "full"
 order: 1
-coverLabel: "Trailer sway on wet pavement, the problem this system corrects for"
-coverSrc: "/media/projects/stability-control/trailer-sway.jpg"
+coverLabel: "Deutsche Hydrapro's Delta brake actuator, engineered by Aston Dynamics"
+coverSrc: "/media/projects/stability-control/delta.png"
 coverKind: "image"
+group: "work"
+team: "Aston Dynamics"
+highlights:
+  - value: "+45%"
+    label: "sway damping vs. the top competitor (ζ 0.80 vs 0.55)"
+  - value: "100% recall"
+    label: "sway detection, at 98% precision over 100+ events"
+  - value: "4 countries"
+    label: "customer beta"
+  - value: "150 km/h"
+    label: "to a full stop, after fixing a braking runaway"
 ---
+
+import BrakeLoop from '../../components/diagrams/BrakeLoop.astro';
+import Telemetry from '../../components/diagrams/Telemetry.astro';
 
 ## The problem
 
-Trailer braking and stability systems are usually built around one tow vehicle. The control logic gets configured and re-tuned for whatever truck or trailer combination it's attached to. That doesn't scale, and it's fragile: change the vehicle and you're back to re-tuning.
+Aston Dynamics engineers the trailer brake products that Deutsche Hydrapro sells, the TowPilot and the Delta, and both run the control loop and sway controller on this page. Trailer brake controllers are normally wired into the tow vehicle and set up for it. This one has to work on any tow vehicle with nothing but power and the lamp lines on the 7/12-pin trailer plug. There's no vehicle data bus and no wheel speeds: whether the driver is braking has to come from the lamp circuits, and how hard the trailer is braking has to come from an IMU on the trailer itself. Working with that little vehicle data is the hardest part of the product.
 
-The system I worked on is meant to be vehicle-agnostic instead. It has to estimate what the vehicle and trailer are actually doing from onboard sensors and respond correctly, without a setup step that hardcodes assumptions about a specific tow vehicle. On top of that, it's a safety-critical system, so the control loop has to be predictable under real driving conditions, not just correct on average.
+<BrakeLoop />
 
-## How I approached it
+## The control loop
 
-The control loop itself is where I spent most of my time. The system I inherited was built around an asynchronous architecture: logically flexible, but hard to reason about when you need hard guarantees on timing and ordering for a safety system. I redesigned it around a synchronous, deterministic loop instead: every cycle does the same fixed sequence of read → estimate → decide → actuate, on a fixed schedule, with no ambiguity about what ran when.
+The loop runs at 100 Hz as a FreeRTOS task on an ESP32-C6. It wakes on each completed ADC frame (30 samples at 3 kHz, so one frame every 10 ms). A cycle takes about 3 ms typically and about 9 ms in the worst case, and a cycle that misses its frame is counted and logged rather than silently skipped.
 
-Around that loop, I built the state estimation that turns raw sensor signals into a picture of what the vehicle is actually doing, and the control logic that decides how to respond. I can't get into the specifics of the estimation or intervention logic here since that part is patent-pending, but the architecture, the timing model, and the fault handling around it are mine end to end.
+I first wrote it in MISRA C on ESP-IDF, because the ESP32-C6 wasn't supported by PlatformIO's Arduino framework at the time, and later migrated it to Rust. Early versions ran the control and calibration logic as async tasks. I moved the loop to a deterministic synchronous task, with Bluetooth commands reaching it through a non-blocking latest-value signal, so radio traffic can't stall a control cycle. Every output is safety-gated, and the firmware is designed to reboot on failure.
 
-## Hardest problem
+## State estimation
 
-Determinism was the easy part to *decide on* and the hard part to *build correctly*. A synchronous loop is only as good as its worst-case timing. Every sensor read, every calculation, every actuation command has to fit inside the cycle budget, every time, including when a sensor is noisy or briefly drops out. Getting fault handling right (what does the loop do when an input is missing, stale, or out of range, on a system that's controlling brakes) took as much work as the control logic itself.
+I wrote the state estimation in embedded Rust: an Extended Kalman Filter with TRIAD calibration, so the IMU can be mounted in any orientation, and a position EKF fed by a GPS parser I wrote from scratch, which drives the products' fleet tracking and mileage features. I also brought up the BMI270 IMU with my own SPI driver.
 
-The other constant challenge was generality. It's much easier to build something that works well on one specific truck-and-trailer combination than something that has to behave correctly across a wide range of vehicles it's never seen configuration data for.
+## Reading the tow vehicle
 
-## Build & testing process
+The controller reads the lamp circuits through the ADC and has to tell braking apart from hazards and turn signals on vehicles it has never seen:
 
-This wasn't a system I was content to leave in simulation. I ran extensive simulation to validate the estimation and control logic before ever touching a real vehicle, but the real test was full-scale field validation, including a testing trip to Australia, where I was responsible for the full loop: test planning and logistics, firmware updates in the field, controller tuning, running the actual test sessions, reviewing the resulting data, and diagnosing what didn't behave the way simulation predicted.
+- High and low thresholds with a dead zone between them, so a noisy signal doesn't chatter.
+- Hazards are recognized by blink period (within ±20% of the calibrated rate) and duty cycle (30–75%). A 5-second calibration learns each vehicle's blink rate.
+- A lone turn signal is excluded when left and right disagree for more than 15 ms.
+- Many trucks drive their lamps with PWM. Brake lights regulated at 1 kHz and at 200 Hz still read as braking.
 
-Field testing surfaces failure modes that never show up in simulation: sensor behavior on real road surfaces, timing edge cases under real load, things that only happen once you put the system on an actual vehicle. Iterating on those was most of the value of the trip.
+The ADC driver underneath is a teammate's. The signal processing on top of it is mine.
 
-## Result
+## Sway control
 
-The system has been validated through full-scale vehicle testing, with the control architecture designed to generalize across tow vehicles rather than being configured per-vehicle. The underlying work is patent-pending.
+Trailer sway is a lightly damped oscillation of the trailer about the hitch, and on a bad day it grows. The detector watches yaw rate and lateral acceleration, and oscillation, energy and frequency-band checks all have to agree before anything happens. Their verdict feeds an asymmetric hysteresis latch (+1 for each 10 ms control cycle that looks like sway, −3 for each one that doesn't, engage at 8, release at 3), so it needs at least 80 ms of sustained sway to engage and releases within 70 ms of it ending.
 
-## What I learned
+To score the detector, I wrote a Python labeler that goes through the logs offline and marks an event as sway if it has more than two distinct oscillation peaks or its fitted growth rate is positive. Against those labels, the detector caught every sway event at 98% precision over 100+ events.
 
-Simulation tells you your control law is correct. It doesn't tell you your system is safe. Most of the real engineering here was in the parts that don't show up in a block diagram: fault handling, timing guarantees, what happens when a sensor gives you garbage for one cycle. A synchronous, deterministic architecture made all of that dramatically easier to reason about than the asynchronous system it replaced, even though it sounds like the "simpler" choice on paper.
+**[Try the interactive sway demo →](/sway-demo)** It runs a simplified truck and trailer in your browser, with and without a sway controller that follows the same logic.
+
+To measure the controller, I ran steering-impulse tests: constant speed, one sharp steering input, then the wheel held still, at 70–140 km/h. I found out afterwards that this is close to ISO 9815, the standard car-trailer stability test. I fit a decaying sinusoid to each yaw-rate response and computed the damping ratio from it. Over 20 runs we averaged ζ = 0.80; the top competitor's product averaged 0.55 in the same tests, so 45% more damping. At ζ = 0.80 the counter-swing is only about 1.5% of the first peak, so a simple peak-to-peak log decrement can't measure it; the fit over the whole decay can.
+
+## The loop that fought itself
+
+Early on, the brake loop always ran away to 100% braking. I traced it to self-excitation: the trailer's own braking shows up as deceleration in the IMU signal the controller reads, so the output was feeding its own measurement. I designed compensation for that path. With it, the loop held stable through a full stop from about 150 km/h on the road, and indefinitely in simulation.
+
+## Testing
+
+- 170+ unit tests on the control loop: requirements and equivalence classes, boundary values on both sides of every threshold, and fault injection (a stuck sensor, outage recovery, NaN at gimbal lock, timestamps going backwards, buffer overflow, PWM-regulated truck lighting).
+- Most of the hardware-testable scenarios rerun on real hardware through the team's hardware-in-the-loop rig, which a teammate built.
+- A car-trailer simulation I wrote runs the shipped sway controller software-in-the-loop ([see the simulation](/projects/vehicle-simulation)).
+- Full-scale vehicle testing in Australia: I tuned and verified the controller across 8 configurations on 2 vehicles and wrote the results up for the team.
+- A wireless 100 Hz telemetry system I co-built with a teammate (ESP-NOW receiver in Rust, Python FastAPI server, SQLite logs, live WebSocket dashboard), used for about 500 hours of bench and vehicle testing.
+
+<Telemetry />
+
+## Results
+
+- In a customer beta in 4 countries.
+- 45% more sway damping than the top competitor's product (ζ 0.80 vs 0.55).
+- Sway detection at 100% recall and 98% precision over 100+ events.
+- A brake loop that went from always running away to stable through a full stop from 150 km/h.

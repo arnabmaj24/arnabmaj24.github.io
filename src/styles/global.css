@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -13,8 +12,9 @@
   --color-border: #d9cba8;
   --color-border-strong: #b9a576;
   --color-fg: #2b2620;
-  --color-fg-muted: #6b5f4c;
-  --color-fg-dim: #948870;
+  /* Body and label text: 7.4:1 and 5.1:1 against --color-bg (WCAG AA for small text) */
+  --color-fg-muted: #574c3b;
+  --color-fg-dim: #6f644f;
   --color-accent: #3f5d3a;
   --color-accent-dim: #dce3ce;
   --color-rust: #b0501f;

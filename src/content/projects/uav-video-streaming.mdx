@@ -4,7 +4,7 @@ kicker: "UofT Aerospace Team / Unmanned Aircraft Systems"
 tagline: "Took a ROS ground-station video pipeline from ~4 FPS to ~24 FPS over a 4G link."
 summary: "As part of UTAT's UAS division, I worked on the ROS-based video pipeline feeding live UAV footage back to the ground station over a 4G connection. The feed was barely usable at around 4 FPS. After rework it ran at roughly 24 FPS, which is the difference between a slideshow and something a ground crew can actually fly with."
 status: "Flight-tested"
-year: "Ongoing"
+year: "Sep 2023 – Mar 2025"
 stack: ["ROS", "PX4", "Jetson", "Raspberry Pi", "Linux", "Networking"]
 tags: ["Robotics", "ROS", "UAV", "Linux", "Networking"]
 role:
@@ -15,8 +15,13 @@ links: []
 confidential: false
 featured: false
 size: "compact"
-order: 7
+order: 10
 coverLabel: "Ground-station live video feed"
+group: "team"
+team: "UofT Aerospace Team"
+highlights:
+  - value: "4 → 24 FPS"
+    label: "ground-station video in flight tests"
 ---
 
 At ~4 FPS, the ground-station video feed was closer to a slow slideshow than a live view, not good enough to actually fly or make decisions off of in real time. I profiled the pipeline end to end (onboard capture, the ROS nodes moving frames around, and the link out over 4G) to find where frames were actually being lost or delayed, rather than guessing at a single bottleneck, and got it to roughly 24 FPS. The hard part wasn't throughput on a bench, it was staying usable on an actual 4G connection in the field, where bandwidth and latency aren't constant the way they are in a lab.

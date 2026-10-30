@@ -2,6 +2,12 @@
 import Layout from './Layout.astro';
 import MediaSlot from '../components/MediaSlot.astro';
 import Tag from '../components/Tag.astro';
+import Highlights from '../components/Highlights.astro';
+
+interface NavLink {
+  slug: string;
+  title: string;
+}
 
 interface Props {
   title: string;
@@ -10,15 +16,21 @@ interface Props {
   summary: string;
   status: string;
   year: string;
+  team?: string;
   stack: string[];
   tags: string[];
   role: string[];
   links: { label: string; href: string }[];
+  highlights: { value: string; label: string }[];
   confidential: boolean;
   size: 'full' | 'compact';
   coverLabel: string;
   coverSrc?: string;
   coverKind?: 'image' | 'video';
+  coverFit?: 'cover' | 'contain';
+  headings: { depth: number; slug: string; text: string }[];
+  prev?: NavLink;
+  next?: NavLink;
 }
 
 const {
@@ -28,87 +40,149 @@ const {
   summary,
   status,
   year,
+  team,
   stack,
   role,
   links,
+  highlights,
   confidential,
-  size,
   coverLabel,
   coverSrc,
   coverKind = 'image',
+  coverFit = 'cover',
+  headings,
+  prev,
+  next,
 } = Astro.props;
+
+const sections = headings.filter((h) => h.depth === 2);
 ---
 
 <Layout title={title} description={summary}>
-  <article class="mx-auto max-w-3xl px-6 py-14">
+  <article class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
     <a href="/projects" class="font-mono-tight text-xs uppercase tracking-wider text-fg-muted hover:text-accent">
       ← All projects
     </a>
 
-    <p class="mt-6 font-mono-tight text-xs uppercase tracking-wider text-fg-dim">{kicker}</p>
-    <h1 class="mt-2 font-serif text-3xl font-semibold text-fg sm:text-4xl">{title}</h1>
-    <p class="mt-3 text-lg text-fg-muted">{tagline}</p>
-
-    <div class="mt-6 flex flex-wrap items-center gap-3">
-      <span class="status-stamp font-mono-tight text-xs uppercase tracking-wider">{status}</span>
-      <span class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">{year}</span>
-    </div>
-
-    <div class="mt-10">
-      <MediaSlot label={coverLabel} src={coverSrc} kind={coverKind} aspect={size === 'full' ? 'aspect-video' : 'aspect-[16/9]'} />
-    </div>
+    <header class="mt-6 max-w-3xl">
+      <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">{kicker}</p>
+      <h1 class="mt-2 font-serif text-3xl font-semibold leading-tight text-fg sm:text-4xl">{title}</h1>
+      <p class="mt-3 text-lg text-fg-muted">{tagline}</p>
+      <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span class="status-stamp font-mono-tight text-xs uppercase tracking-wider">{status}</span>
+        <span class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">{year}</span>
+        {team && <span class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">{team}</span>}
+      </div>
+    </header>
 
     {
-      confidential && (
-        <div class="mt-8 border border-border bg-bg-elevated px-5 py-4">
-          <p class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">// Note</p>
-          <p class="mt-2 text-sm text-fg-muted">
-            This work was done for an employer and involves patent-pending, safety-critical technology. Some details
-            are intentionally generalized. Diagrams and specifics that would expose proprietary implementation are
-            left out.
-          </p>
+      highlights.length > 0 && (
+        <div class="mt-8 max-w-4xl">
+          <Highlights items={highlights} />
         </div>
       )
     }
 
-    <div class="mt-10 grid gap-8 sm:grid-cols-2">
-      <div>
-        <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">My role</h2>
-        <ul class="mt-3 space-y-2">
-          {role.map((r) => (
-            <li class="flex gap-2 text-sm text-fg-muted">
-              <span class="text-accent">›</span>
-              {r}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Stack</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
-          {stack.map((s) => <Tag>{s}</Tag>)}
+    <div class="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem]">
+      <aside class="lg:order-2">
+        <div class="space-y-8 lg:sticky lg:top-24">
+          {
+            sections.length > 1 && (
+              <nav aria-label="On this page" class="hidden lg:block">
+                <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">On this page</h2>
+                <ul class="mt-3 space-y-2 border-l border-border">
+                  {sections.map((h) => (
+                    <li>
+                      <a href={`#${h.slug}`} class="-ml-px block border-l border-transparent pl-3 text-sm text-fg-muted hover:border-accent hover:text-accent">
+                        {h.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )
+          }
+          <div>
+            <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">My role</h2>
+            <ul class="mt-3 space-y-2">
+              {role.map((r) => (
+                <li class="flex gap-2 text-sm text-fg-muted">
+                  <span class="text-accent">›</span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Stack</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+              {stack.map((s) => <Tag>{s}</Tag>)}
+            </div>
+          </div>
+          {
+            links.length > 0 && (
+              <div>
+                <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Links</h2>
+                <ul class="mt-3 space-y-2">
+                  {links.map((l) => (
+                    <li>
+                      <a href={l.href} target="_blank" rel="noreferrer" class="text-sm text-accent hover:underline">
+                        {l.label} ↗
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      </aside>
+
+      <div class="min-w-0 lg:order-1">
+        {
+          coverSrc && (
+            <>
+              <MediaSlot label={coverLabel} src={coverSrc} kind={coverKind} fit={coverFit} aspect="aspect-video" />
+              <p class="mt-2 text-xs text-fg-dim">{coverLabel}</p>
+            </>
+          )
+        }
+
+        {
+          confidential && (
+            <div class="mt-8 border border-border bg-bg-elevated px-5 py-4">
+              <p class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">// Note</p>
+              <p class="mt-2 text-sm text-fg-muted">
+                This work was done for an employer. Some details are intentionally generalized.
+              </p>
+            </div>
+          )
+        }
+
+        <div class="prose prose-headings:font-medium prose-headings:text-fg prose-p:text-fg-muted prose-li:text-fg-muted prose-strong:text-fg prose-a:text-accent mt-10 max-w-3xl prose-headings:mt-10 prose-headings:mb-3 prose-headings:scroll-mt-24 prose-h2:text-xl">
+          <slot />
         </div>
       </div>
-    </div>
-
-    <div class="prose prose-headings:font-medium prose-headings:text-fg prose-p:text-fg-muted prose-li:text-fg-muted prose-strong:text-fg mt-12 max-w-none prose-headings:mt-10 prose-headings:mb-3 prose-h2:text-xl">
-      <slot />
     </div>
 
     {
-      links.length > 0 && (
-        <div class="mt-12 border-t border-border pt-8">
-          <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Links</h2>
-          <ul class="mt-3 flex flex-wrap gap-4">
-            {links.map((l) => (
-              <li>
-                <a href={l.href} target="_blank" rel="noreferrer" class="text-sm text-accent hover:underline">
-                  {l.label} ↗
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+      (prev || next) && (
+        <nav aria-label="More projects" class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+          {prev ? (
+            <a href={`/projects/${prev.slug}`} class="group border border-border bg-bg-elevated px-5 py-4 hover:border-border-strong">
+              <span class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">← Previous</span>
+              <span class="mt-1 block font-serif text-lg text-fg group-hover:text-accent">{prev.title}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          {next && (
+            <a href={`/projects/${next.slug}`} class="group border border-border bg-bg-elevated px-5 py-4 text-right hover:border-border-strong">
+              <span class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">Next →</span>
+              <span class="mt-1 block font-serif text-lg text-fg group-hover:text-accent">{next.title}</span>
+            </a>
+          )}
+        </nav>
       )
     }
   </article>

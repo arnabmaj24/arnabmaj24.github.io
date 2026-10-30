@@ -1,0 +1,57 @@
+---
+title: "Car-Trailer Dynamics Simulation"
+kicker: "Aston Dynamics / Simulation & Controls"
+tagline: "A dual-track multibody car-trailer simulator in C++ and Rust that runs the shipped sway controller software-in-the-loop."
+summary: "I wrote a car-trailer simulator from scratch so the sway controller had somewhere to fail safely before it went on a truck. It started as a kinematic bicycle model in Python and became a dual-track multibody model in C++, then Rust. Its predicted IMU readings match 8,000 km of measured data at R² = 0.93, and it runs the production sway controller software-in-the-loop."
+status: "In use · Validated against 8,000 km of data"
+year: "Sep 2025 – Present"
+stack: ["Rust", "C++", "Python", "nalgebra", "Multibody dynamics", "Model Predictive Control"]
+tags: ["Simulation", "Vehicle Dynamics", "Controls", "Rust"]
+role:
+  - "Wrote the vehicle model from scratch, from a bicycle model to a constrained multibody model"
+  - "Tuned its parameters from field logs and validated it against measured IMU data"
+  - "Linked the production control-loop crate so the sim runs the shipped controller"
+  - "Ran scripted batch sweeps over parameters and scenarios"
+  - "Prototyped a nonlinear MPC for sway braking"
+links: []
+confidential: false
+featured: true
+size: "full"
+order: 2
+coverLabel: "Same steering input at t = 11.75 s: uncontrolled, hitch angle −8.1° (left); MPC-assisted, −0.7° (right)"
+coverSrc: "/media/projects/vehicle-simulation/mpc-vs-uncontrolled.png"
+coverKind: "image"
+group: "work"
+team: "Aston Dynamics"
+highlights:
+  - value: "R² = 0.93"
+    label: "against 8,000 km of measured IMU data"
+  - value: "2.2×"
+    label: "faster sway settling with MPC, in simulation"
+  - value: "SIL"
+    label: "runs the production sway controller"
+---
+
+## Why
+
+A sway controller is hard to develop on a real truck: you can only provoke so much sway safely, and every run costs a day. I wanted a model good enough to try controller changes on first and only take the promising ones to the road.
+
+## The model
+
+I built it up in steps. It started as a kinematic bicycle model in Python, then became a dual-track model with tire dynamics, then moved to C++, and then to Rust (about 3,200 lines), with a Python front end for plots and animations.
+
+The tow vehicle and the trailer are rigid bodies on Fiala tires. The hitch is a rigid joint: each step solves for the constraint forces through S = J M⁻¹ Jᵀ (a 2×2 matrix, inverted analytically), and Baumgarte stabilization stops the joint from slowly drifting apart.
+
+## Does it match reality?
+
+I tuned the model's parameters from field logs, then compared the IMU readings it predicts with the ones measured on the real system over 8,000 km of testing, mainly accelerations such as the deceleration a given brake command produces. The fit is R² = 0.93.
+
+## One code path
+
+The simulator depends on the production control-loop crate, so it runs the firmware's own sway controller, not a re-implementation of it: simulated IMU data goes in, and the controller's brake command goes back into the model. Separate binaries render animations, run batch parameter sweeps and compare controllers.
+
+## Trying something better: MPC
+
+I used the simulator to prototype a nonlinear model predictive controller for sway braking. In double-lane-change runs it settled sway 2.2× faster than the shipped controller, in simulation. The image above is one frame from that comparison: with the same steering input, the uncontrolled trailer is at −8.1° of hitch angle while the MPC-assisted one is at −0.7°. The MPC hasn't been to the road yet.
+
+For a hands-on version, the [sway demo](/sway-demo) runs a much simpler truck-trailer model in your browser: change the speed and tongue weight and watch a sway controller catch the sway. It's a separate, simplified model, not this simulator.

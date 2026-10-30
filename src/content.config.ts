@@ -28,6 +28,21 @@ const projects = defineCollection({
     // "full" gets the whole case-study template, "compact" gets a shorter one-page treatment
     size: z.enum(['full', 'compact']).default('full'),
     order: z.number().default(99),
+    // Where the project sits on /projects: work (Aston), team (teams, research, competitions) or course.
+    group: z.enum(['work', 'team', 'course']).default('team'),
+    // Team size or setting, e.g. "Solo" or "3-person team". Shown in the project header.
+    team: z.string().optional(),
+    // Headline results shown on cards and at the top of the project page. Every value must be a confirmed fact.
+    highlights: z
+      .array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+        })
+      )
+      .default([]),
+    // "contain" letterboxes portrait photos instead of cropping them to 16:9.
+    coverFit: z.enum(['cover', 'contain']).default('cover'),
     coverLabel: z.string(),
     // Optional real media to replace the placeholder panel once assets exist.
     // Path relative to /public, e.g. "/media/projects/tvc-rocket/cover.mp4"

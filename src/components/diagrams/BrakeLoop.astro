@@ -1,0 +1,81 @@
+---
+// Signal flow of the TowPilot/Delta control loop, at the level of detail the project page states in text.
+// Software-level only: no internal hardware.
+---
+
+<figure class="not-prose my-8">
+  <div class="overflow-x-auto rounded-sm border border-border bg-bg-elevated p-3">
+    <svg viewBox="0 0 760 330" class="w-full min-w-[640px]" role="img" aria-labelledby="bl-title bl-desc">
+      <title id="bl-title">Brake controller signal flow</title>
+      <desc id="bl-desc">
+        Lamp circuits, the trailer IMU and phone commands feed a 100 Hz control loop that outputs a safety-gated brake command.
+        The trailer's own braking feeds back into the IMU reading, which the loop compensates for.
+      </desc>
+      <defs>
+        <marker id="bl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--color-accent)" />
+        </marker>
+        <marker id="bl-arrow-rust" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--color-rust)" />
+        </marker>
+      </defs>
+      <style>
+        .b { fill: var(--color-bg); stroke: var(--color-border-strong); stroke-width: 1.2; }
+        .t { font: 600 13px var(--font-sans); fill: var(--color-fg); }
+        .s { font: 400 11px var(--font-sans); fill: var(--color-fg-muted); }
+        .m { font: 500 10px var(--font-mono); fill: var(--color-fg-dim); letter-spacing: 0.04em; text-transform: uppercase; }
+        .a { stroke: var(--color-accent); stroke-width: 1.6; fill: none; }
+        .f { stroke: var(--color-rust); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+      </style>
+
+      <text class="m" x="10" y="16">Inputs</text>
+      <rect class="b" x="10" y="26" width="160" height="54" rx="3" />
+      <text class="t" x="20" y="48">Lamp circuits</text>
+      <text class="s" x="20" y="66">7/12-pin trailer plug</text>
+      <rect class="b" x="10" y="116" width="160" height="54" rx="3" />
+      <text class="t" x="20" y="138">Trailer IMU</text>
+      <text class="s" x="20" y="156">BMI270 over SPI</text>
+      <rect class="b" x="10" y="206" width="160" height="54" rx="3" />
+      <text class="t" x="20" y="228">Phone app</text>
+      <text class="s" x="20" y="246">Bluetooth commands</text>
+
+      <text class="m" x="205" y="16">Processing</text>
+      <rect class="b" x="205" y="26" width="185" height="54" rx="3" />
+      <text class="t" x="215" y="48">Lamp-signal processing</text>
+      <text class="s" x="215" y="66">braking · hazards · turn signals</text>
+      <rect class="b" x="205" y="116" width="185" height="54" rx="3" />
+      <text class="t" x="215" y="138">State estimation</text>
+      <text class="s" x="215" y="156">EKF, any mounting angle</text>
+      <text class="s" x="215" y="233">non-blocking, latest value wins</text>
+
+      <path class="a" d="M170 53 H203" marker-end="url(#bl-arrow)" />
+      <path class="a" d="M170 143 H203" marker-end="url(#bl-arrow)" />
+      <path class="a" d="M170 233 H208 M392 233 H423" marker-end="url(#bl-arrow)" />
+
+      <text class="m" x="425" y="16">100 Hz loop · FreeRTOS task</text>
+      <rect x="425" y="26" width="185" height="234" rx="4" fill="var(--color-accent-dim)" stroke="var(--color-accent)" stroke-width="1.4" />
+      <text class="t" x="437" y="54">Brake control</text>
+      <text class="t" x="437" y="96">Sway detection</text>
+      <text class="s" x="437" y="113">3 checks agree + hysteresis latch</text>
+      <text class="t" x="437" y="152">Sway control</text>
+      <text class="t" x="437" y="194">Feedback compensation</text>
+      <text class="t" x="437" y="236">Safety-gated output</text>
+      <text class="s" x="437" y="252">~3 ms typical, 9 ms worst case</text>
+
+      <path class="a" d="M390 53 H423" marker-end="url(#bl-arrow)" />
+      <path class="a" d="M390 143 H423" marker-end="url(#bl-arrow)" />
+
+      <text class="m" x="640" y="16">Output</text>
+      <rect class="b" x="640" y="116" width="110" height="54" rx="3" />
+      <text class="t" x="650" y="138">Trailer</text>
+      <text class="t" x="650" y="155">brakes</text>
+      <path class="a" d="M610 143 H638" marker-end="url(#bl-arrow)" />
+
+      <path class="f" d="M695 170 V300 H90 V172" marker-end="url(#bl-arrow-rust)" />
+      <text class="s" x="215" y="292" style="fill: var(--color-rust)">The trailer's own braking shows up in the IMU reading: the loop compensates for it</text>
+    </svg>
+  </div>
+  <figcaption class="mt-2 text-xs text-fg-dim">
+    How the control loop sees the world. The dashed path is the self-excitation that used to run the brakes away to 100%.
+  </figcaption>
+</figure>

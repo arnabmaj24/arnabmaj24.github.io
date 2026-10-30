@@ -1,42 +1,53 @@
 ---
-title: "Thrust Vector Controlled Rocket"
-kicker: "Team of 6 / Design, Manufacturing & Controls"
-tagline: "A team-built model rocket with active thrust vector control, aimed at propulsive ascent and a controlled landing instead of passive fin stability."
-summary: "Working with a team of six, I designed and manufactured the mechanical body and thrust-vectoring mechanism for a model-scale rocket. The rocket's guidance stack fuses IMU and magnetometer data through an Unscented Kalman Filter for pose estimation, feeding a PID attitude controller that corrects trajectory in flight."
-status: "Prototype · Team project"
-year: "Personal project"
-stack: ["Onshape CAD", "Mechanical Design & Manufacturing", "Guidance, Navigation & Control", "Unscented Kalman Filter", "PID Control", "Embedded Firmware"]
-tags: ["Controls", "Mechanical", "Embedded", "State Estimation"]
+title: "Thrust-Vector-Controlled Rocket"
+kicker: "3-Person Team / Mechanical Design & Controls"
+tagline: "A model rocket that steers by gimballing its motor, with a UKF + PID attitude controller. Bench hot-fire tested; not flown yet."
+summary: "With two teammates, I'm building a model rocket that steers by gimballing its motor instead of relying on fins. I designed and built the body and the thrust-vectoring gimbal, built a 3-DOF Simulink model of the rocket, and worked on the guidance stack: an Unscented Kalman Filter fusing IMU and magnetometer data, feeding a PID attitude controller. In bench hot-fire tests the thrust-vector control kept attitude oscillations decaying."
+status: "Bench hot-fire tested · Not yet flown"
+year: "Sep 2024 – Present"
+stack: ["Onshape CAD", "Mechanical design & manufacturing", "MATLAB / Simulink (Aerospace Blockset)", "Unscented Kalman Filter", "PID control", "C++"]
+tags: ["Controls", "Mechanical", "State Estimation"]
 role:
-  - "Designed the mechanical body and thrust-vectoring mechanism"
-  - "Iterated multiple TVC mechanism designs in Onshape against the team's optimization constraints and requirements"
-  - "Also contributed to the GNC implementation and controller tuning alongside the team"
-  - "Worked within a 6-person team spanning GNC, embedded firmware, and manufacturing"
+  - "Designed and built the rocket body and the thrust-vectoring gimbal (Onshape)"
+  - "Iterated the gimbal against the team's range, actuator and mass requirements"
+  - "Built a 3-DOF Simulink model of the rocket (Aerospace Blockset)"
+  - "Worked on the UKF + PID guidance stack and its tuning"
+  - "Ran the bench hot-fire tests"
 links: []
 confidential: false
 featured: true
 size: "full"
 order: 4
-coverLabel: "TVC mechanism on test stand"
+coverLabel: "Bench hot-fire test"
+coverSrc: "/media/projects/tvc-rocket/hotfire.mp4"
 coverKind: "video"
+group: "team"
+team: "3-person team"
+highlights:
+  - value: "Hot-fire"
+    label: "bench tested, oscillations decaying"
+  - value: "UKF + PID"
+    label: "attitude estimation and control"
+  - value: "3-DOF"
+    label: "Simulink model of the rocket"
 ---
 
 ## The problem
 
-Passive fin-stabilized model rockets are simple, but they don't correct for disturbances in flight. Six of us set out to build a model-scale rocket with active thrust vector control instead, aiming for a propulsive ascent and a controlled landing rather than just stable flight.
+Fin-stabilized model rockets are simple, but they can't correct for a disturbance once they're off the pad. Three of us set out to build one that steers actively by gimballing its motor.
 
-## My role
+## My part
 
-Mechanical design and manufacturing was mine: the rocket body and the mechanism that actually gimbals the motor. I went through multiple mechanism iterations in Onshape, working against the optimization constraints and requirements the team had set for gimbal range, actuator mounting, and mass budget. I also worked alongside the team on the GNC side, contributing to the control implementation and tuning rather than just handing off a mechanism and walking away.
+The mechanical side was mine: the rocket body and the gimbal that moves the motor. I went through several gimbal designs in Onshape, working against the requirements the team set for gimbal range, actuator mounting and mass. I also built a 3-DOF Simulink model of the rocket with the Aerospace Blockset, and worked with the team on the guidance stack and its tuning instead of handing over a mechanism and walking away.
 
-## How the system worked
+## How it works
 
-The rocket's guidance stack fuses IMU and magnetometer data through an Unscented Kalman Filter to estimate pose in flight, feeding a PID attitude controller that commands the gimbal to correct trajectory. My focus was making sure the mechanism could actually deliver the range and speed the controller needed, and tuning the controller against what the hardware could really do.
+An Unscented Kalman Filter fuses IMU and magnetometer data into an attitude estimate, and a PID attitude controller commands the gimbal to correct it.
 
 ## Hardest problem
 
-The mechanical constraint that mattered most was fitting a gimbal with enough range and actuator authority into the mass and space budget of a model rocket, without adding so much weight that it worked against the ascent it was supposed to be correcting. Designing a mechanism to satisfy someone else's control requirements, instead of the other way around, is a different discipline than mechanical design in isolation.
+Fitting a gimbal with enough range and actuator authority into the mass and space budget of a model rocket, without adding so much weight that it works against the flight it's supposed to be correcting. Designing a mechanism around someone else's control requirements is a different job from mechanical design on its own: gimbal range and actuator speed are control requirements, not just mechanical specs.
 
-## What I learned
+## Where it stands
 
-A mechanism is only as good as its integration with the system commanding it. Gimbal range and actuator bandwidth aren't just mechanical specs, they're control requirements, and getting them wrong means the controller can't do its job no matter how good the estimation is.
+It has been bench hot-fire tested but hasn't flown. In the hot-fire tests the attitude oscillations decayed, but they hadn't fully settled by the time the motor burned out, so tuning continues.

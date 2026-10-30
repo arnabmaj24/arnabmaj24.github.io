@@ -1,48 +1,48 @@
 ---
-title: "IMU Pose Estimation Research"
-kicker: "ESROP Global Research Internship / King Mongkut's University of Technology Thonburi"
-tagline: "Robotic control-systems research on IMU-based pose estimation using Kalman filtering, as a UofT research placement in Bangkok."
-summary: "Through UofT's ESROP Global program, I spent a summer at the IC2 Lab at King Mongkut's University of Technology Thonburi in Bangkok researching IMU-based pose estimation for robotic control systems. I modeled 6DOF dynamics using quaternions, built Kalman-filter-based estimators, and contributed to a tutorial paper and its testing protocols."
+title: "Adaptive EKF for IMU Pose Estimation"
+kicker: "ESROP Global Research Internship / KMUTT IC2 Lab, Bangkok"
+tagline: "An adaptive Extended Kalman Filter that drifted 32% less than a standard EKF over 10 minutes of dead reckoning."
+summary: "Through UofT's ESROP Global program, I spent a summer at the IC2 Lab at King Mongkut's University of Technology Thonburi in Bangkok working on IMU pose estimation. I developed an adaptive Extended Kalman Filter that shifts trust between the gyroscope and the accelerometer based on measured acceleration, and designed three maneuvering tests to compare it with a standard EKF. Over a 10-minute dead-reckoning window on a mobile robot, it drifted 32% less."
 status: "Completed"
-year: "Summer 2024"
-stack: ["MATLAB / Simulink", "Kalman Filtering", "Quaternion-based 6DOF Modeling", "PID Control", "CAD", "Technical Writing"]
-tags: ["State Estimation", "Controls", "Research", "Robotics"]
+year: "May 2024 – Aug 2024"
+stack: ["MATLAB / Simulink", "Extended Kalman Filter", "Quaternions", "Sensor fusion"]
+tags: ["State Estimation", "Research", "Robotics"]
 role:
-  - "Researched IMU-based pose estimation using Kalman filtering"
-  - "Mathematically modeled 6DOF dynamics using quaternions"
-  - "Built simulation models in MATLAB/Simulink and CAD for research visualization and validation"
-  - "Modeled PID feedback controllers for autonomous system control protocols"
-  - "Contributed to a tutorial paper, including its testing protocols"
-  - "Represented the University of Toronto at the IC2 Lab as part of the exchange"
+  - "Developed an adaptive EKF that scales the accelerometer's measurement-noise covariance with acceleration"
+  - "Modeled the IMU's 6-DOF orientation with quaternions"
+  - "Designed 3 maneuvering tests to compare it with a standard EKF"
+  - "Ran the comparison in Simulink and on a mobile robot"
+  - "Contributed to the lab's pose-estimation tutorial"
 links: []
 confidential: false
 featured: false
 size: "full"
-order: 6
+order: 7
 coverLabel: "Simulink pose estimation model"
 coverKind: "image"
+group: "team"
+team: "Research internship"
+highlights:
+  - value: "32%"
+    label: "less drift than a standard EKF"
+  - value: "10 min"
+    label: "dead-reckoning window on a mobile robot"
+  - value: "3"
+    label: "maneuvering tests designed"
 ---
 
 ## The problem
 
-Pose estimation from IMUs alone is noisy and drifts. Getting it right matters for any autonomous system that has to know its own orientation and position without leaning on external references like GPS or vision.
+An IMU's accelerometer is a good gravity reference when the robot is still and a bad one when it's accelerating, because it can't tell gravity from motion. A standard EKF trusts it the same amount either way, and the orientation estimate suffers in hard maneuvers.
 
-## How I approached it
+## What I built
 
-I modeled the underlying 6DOF dynamics using quaternions to avoid the singularities you get with Euler angles, then built Kalman-filter-based estimators on top to fuse noisy IMU measurements into a usable pose estimate. I validated the models in MATLAB/Simulink and CAD before folding the work into testing protocols that became part of a tutorial paper documenting how to use it.
+An adaptive EKF that scales R, the accelerometer's measurement-noise covariance, with measured acceleration. When the robot accelerates hard, the filter trusts the accelerometer less and the gyroscope more; when it's calm, it leans on the accelerometer to correct gyro drift. Orientation is a quaternion, which avoids the singularities you get with Euler angles.
 
-## My role
+## Testing
 
-This was a placement through UofT's ESROP Global program, one of the university's more competitive research programs, at the IC2 Lab at King Mongkut's University of Technology Thonburi in Bangkok. Alongside the research itself, I represented the University of Toronto at the lab as part of the exchange.
-
-## Hardest problem
-
-Quaternion-based dynamics are mathematically clean but easy to get subtly wrong: sign conventions, normalization, and the mechanics of fusing a quaternion-based orientation estimate through a Kalman filter all have failure modes that don't show up until you check the estimate against ground truth. Getting the math right and getting the implementation right turned out to be two different problems.
+I designed three maneuvering tests to compare the adaptive filter with a standard EKF, and ran the same comparison in Simulink and on a mobile robot.
 
 ## Result
 
-The work contributed to a tutorial paper on IMU-based pose estimation, including three testing protocols for applying it.
-
-## What I learned
-
-State estimation is where a lot of "the controller isn't working" problems actually live. A perfectly good controller fed a bad pose estimate will behave badly, and it's easy to blame the wrong half of the system if you haven't isolated the estimator first.
+Over a 10-minute dead-reckoning window on the mobile robot, the adaptive EKF drifted 32% less than the standard one. The work went into a pose-estimation tutorial for the lab.

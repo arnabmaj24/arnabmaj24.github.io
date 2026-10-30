@@ -1,21 +1,29 @@
 ---
-title: "Monocular Visual Odometry"
-kicker: "Personal Project"
-tagline: "Camera-only pose estimation, evaluated against the EuRoC MAV dataset."
-summary: "A monocular visual odometry pipeline estimating camera pose from a single video feed, built and evaluated using the EuRoC MAV dataset."
-status: "Research / Prototype"
-year: "Personal project"
-stack: ["Python", "Computer Vision", "Deep Learning", "ROS"]
-tags: ["Computer Vision", "Robotics", "ROS"]
+title: "Deep-Learning Visual Odometry"
+kicker: "Applied Fundamentals of Deep Learning (APS360) / 4-Person Team"
+tagline: "A vision transformer (TSFormer-VO) against a CNN-LSTM baseline (DeepVO) for estimating camera motion from a single camera."
+summary: "For APS360, four of us compared TSFormer-VO, a vision transformer, with a DeepVO CNN-LSTM baseline for monocular visual odometry on the EuRoC MAV dataset. I worked across the project: the ROS-bag data pipeline, both models, and the evaluation and report. Neither model was accurate: both drifted badly. DeepVO kept trajectories closer to ground truth, and TSFormer predicted roll better."
+status: "Completed · Course project"
+year: "Jan 2025 – Apr 2025"
+stack: ["Python", "PyTorch", "ROS bags", "Vision transformers", "CNN-LSTM"]
+tags: ["Computer Vision", "Deep Learning", "Robotics"]
 role:
-  - "Built the pose-estimation pipeline"
-  - "Evaluated performance against the EuRoC MAV benchmark dataset"
+  - "Built the data pipeline from EuRoC MAV ROS bags"
+  - "Worked on the DeepVO baseline and the TSFormer-VO model"
+  - "Ran the evaluation and wrote the report"
 links: []
 confidential: false
 featured: false
 size: "compact"
-order: 8
+order: 11
 coverLabel: "Estimated trajectory vs. ground truth"
+group: "course"
+team: "4-person team"
+highlights:
+  - value: "12,000"
+    label: "training sequences from EuRoC MAV"
+  - value: "2 models"
+    label: "vision transformer vs. CNN-LSTM"
 ---
 
-A smaller exploration into monocular visual odometry: estimating a camera's pose and trajectory from video alone, with no depth sensor or second camera to fall back on. Built and tested against the EuRoC MAV dataset, a standard benchmark for this kind of pose-estimation work.
+The data came from EuRoC MAV ROS bags: 20 Hz camera frames matched to 100 Hz VICON poses (within 1 ms), cut into about 12,000 sequences, split 60/20/20, with noise and brightness augmentation. TSFormer-VO uses joint space-time attention (12 blocks, 8 heads); DeepVO is a CNN feeding a 2-layer LSTM. The honest result is that neither tracked well and both drifted badly. DeepVO stayed closer to the true trajectory in position, while TSFormer was better at predicting roll.
