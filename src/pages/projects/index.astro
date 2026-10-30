@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 
-const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
 const groups = [
   { key: 'work', title: 'Aston Dynamics', blurb: 'Products in customer beta: control, estimation, simulation and electronics.' },
   { key: 'team', title: 'Teams, research & competitions', blurb: 'University design teams, a research internship, FRC and a hackathon.' },

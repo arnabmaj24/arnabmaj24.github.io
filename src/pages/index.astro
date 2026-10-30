@@ -5,7 +5,9 @@ import ProjectCard from '../components/ProjectCard.astro';
 import StatReadout from '../components/StatReadout.astro';
 import MediaSlot from '../components/MediaSlot.astro';
 
-const featured = (await getCollection('projects'))
+const published = await getCollection('projects', ({ data }) => !data.draft);
+const live = new Set(published.map((p) => `/projects/${p.id}`));
+const featured = published
   .filter((p) => p.data.featured)
   .sort((a, b) => a.data.order - b.data.order);
 
@@ -46,7 +48,7 @@ const experience = [
     line: 'Electrical design, motors and PID tuning; the team’s first competition win in 8 years.',
     links: [{ label: 'FRC', href: '/projects/frc' }],
   },
-];
+].map((e) => ({ ...e, links: e.links.filter((l) => live.has(l.href)) }));
 
 const skills = [
   { group: 'Controls & estimation', items: ['MPC', 'PID', 'EKF / UKF', 'Sensor fusion', 'Vehicle dynamics', 'Multibody simulation'] },
