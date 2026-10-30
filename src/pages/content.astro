@@ -1,0 +1,107 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatReadout from '../components/StatReadout.astro';
+
+// Posts picked by Arnab (Oct 29, 2026). Titles are the videos' on-screen hooks; quotes are their captions.
+const lead = { id: 'DesONOZmSU7', date: 'Oct 2026' };
+const reels = [
+  { id: 'DdrccGKgKwl', date: 'Sep 2026', title: '7 days in Iceland for less than $1,200 CAD', quote: 'Worth every dollar spent, and possible because of every dollar saved.' },
+  { id: 'DbR1cqRRvkC', date: 'Jul 2026', title: 'How I travel for (almost) free as an engineering student in Canada', quote: 'Never spend money you don’t have and never carry a balance.' },
+  { id: 'DYLEgrJAoDe', date: 'May 2026', title: 'Last day of school as a third-year Robotics Engineering student', quote: 'Exam in the morning to homeless in Europe the next night, what even is life.' },
+  { id: 'DXzEn6yAx-x', date: 'May 2026', title: 'What happens when you watch more Outdoor Boys than lectures', quote: 'Unemployed friend on a Wednesday is the vibe I’m after (I’m still fully employed).' },
+];
+const ig = (id: string) => `https://www.instagram.com/p/${id}/`;
+---
+
+<Layout title="Content" description="Arnab Majumder's travel content as @arnabsalive: living the engineering life without letting it stop a good life. 26 countries since July 2025.">
+  <section class="mx-auto max-w-5xl px-6 py-14">
+    <p class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Content · @arnabsalive</p>
+    <div class="contour-rule mt-2"></div>
+
+    <div class="mt-4 grid items-start gap-10 lg:grid-cols-[1fr_380px]">
+      <div>
+        <h1 class="font-serif text-3xl font-semibold leading-tight text-fg sm:text-4xl">I swear, I’m still an engineer.</h1>
+        <div class="mt-6 space-y-5 text-fg-muted">
+          <p>
+            Engineering is stressful, and I’ve always stacked a lot on top of it. Before my gap year I was working
+            full-time as an engineer while studying full-time at U of T. I just don’t let any of that stop me from
+            having a good life, and keeping my mental health in a good place is part of that.
+          </p>
+          <p>
+            That’s what{' '}
+            <a href="https://www.instagram.com/arnabsalive/" target="_blank" rel="noreferrer" class="text-accent hover:underline">@arnabsalive</a>{' '}
+            is. I share my travel (26 countries since July 2025) and show people how to pull off trips that sound
+            impossible, like using credit-card points to travel for almost nothing.
+          </p>
+          <p>
+            My favourite part is the messages. Every week people write to me saying something I posted inspired them,
+            and that never gets old.
+          </p>
+          <p>
+            I don’t have a goal with it beyond reaching more people and being a positive light in the engineering space.
+            It isn’t about money.
+          </p>
+        </div>
+
+        <div class="mt-8 grid gap-4 sm:grid-cols-3">
+          <StatReadout label="Views a month" value="~1M" detail="on Instagram" />
+          <StatReadout label="Countries" value="26" detail="since July 2025" />
+          <StatReadout label="Messages" value="5+" detail="a week, mostly from students" />
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="https://www.instagram.com/arnabsalive/" target="_blank" rel="noreferrer" class="border border-accent bg-accent px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-bg transition-opacity hover:opacity-90">
+            Follow @arnabsalive
+          </a>
+          <a href="mailto:arnabsalive@gmail.com" class="border border-border-strong px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg transition-colors hover:border-accent hover:text-accent">
+            Email me
+          </a>
+        </div>
+      </div>
+
+      <figure class="embed">
+        <blockquote class="instagram-media" data-instgrm-permalink={ig(lead.id)} data-instgrm-version="14">
+          <a href={ig(lead.id)} target="_blank" rel="noreferrer">“Places I went to instead of lectures” on Instagram</a>
+        </blockquote>
+      </figure>
+    </div>
+
+    <h2 class="mt-16 font-mono-tight text-xs uppercase tracking-wider text-fg-dim">A few videos</h2>
+    <div class="contour-rule mt-2"></div>
+    <div class="mt-6 grid gap-10 md:grid-cols-2">
+      {reels.map((r) => (
+        <article>
+          <p class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">{r.date}</p>
+          <h3 class="mt-1 font-serif text-xl font-medium text-fg">{r.title}</h3>
+          <p class="mt-1 text-sm italic text-fg-muted">“{r.quote}”</p>
+          <figure class="embed mt-4">
+            <blockquote class="instagram-media" data-instgrm-permalink={ig(r.id)} data-instgrm-version="14">
+              <a href={ig(r.id)} target="_blank" rel="noreferrer">Watch “{r.title}” on Instagram</a>
+            </blockquote>
+          </figure>
+        </article>
+      ))}
+    </div>
+  </section>
+</Layout>
+
+<!-- Instagram's official embed script turns each blockquote above into the live post. -->
+<script is:inline async src="https://www.instagram.com/embed.js"></script>
+
+<style>
+  .embed :global(.instagram-media),
+  .embed :global(iframe) {
+    width: 100% !important;
+    max-width: 480px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff;
+  }
+  .embed :global(blockquote.instagram-media) {
+    padding: 1.25rem;
+    font-family: inherit;
+  }
+</style>
