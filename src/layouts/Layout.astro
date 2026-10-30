@@ -12,6 +12,7 @@ const {
   title,
   description = "Arnab Majumder. Robotics, controls, and embedded systems engineer. I build physical systems.",
 } = Astro.props;
+const fullTitle = title === 'Arnab Majumder' ? title : `${title} · Arnab Majumder`;
 ---
 
 <!doctype html>
@@ -26,8 +27,8 @@ const {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} · Arnab Majumder</title>
-    <meta property="og:title" content={`${title} · Arnab Majumder`} />
+    <title>{fullTitle}</title>
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
   </head>
