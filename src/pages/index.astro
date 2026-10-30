@@ -1,15 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ProjectGroups from '../components/ProjectGroups.astro';
 import StatReadout from '../components/StatReadout.astro';
 import MediaSlot from '../components/MediaSlot.astro';
 
 const published = await getCollection('projects', ({ data }) => !data.draft);
 const live = new Set(published.map((p) => `/projects/${p.id}`));
-const featured = published
-  .filter((p) => p.data.featured)
-  .sort((a, b) => a.data.order - b.data.order);
 
 // Every line here must match the resume and the confirmed facts in ~/WorkFiles/Resumes/CLAUDE.md.
 const experience = [
@@ -74,7 +71,7 @@ const skills = [
           of Toronto.
         </p>
         <div class="mt-8 flex flex-wrap gap-3">
-          <a href="/projects" class="border border-accent bg-accent px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-bg transition-opacity hover:opacity-90">
+          <a href="#projects" class="border border-accent bg-accent px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-bg transition-opacity hover:opacity-90">
             View projects
           </a>
           <a href="/resume" class="border border-border-strong px-5 py-2.5 font-mono-tight text-sm uppercase tracking-wider text-fg transition-colors hover:border-accent hover:text-accent">
@@ -103,32 +100,11 @@ const skills = [
     </div>
   </section>
 
-  <!-- Featured projects -->
-  <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-    <div class="flex items-baseline justify-between gap-4">
-      <div>
-        <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Featured work</h2>
-        <div class="contour-rule mt-2"></div>
-      </div>
-      <a href="/projects" class="font-mono-tight text-xs uppercase tracking-wider text-fg-muted hover:text-accent">All projects →</a>
-    </div>
-    <div class="mt-6 grid gap-6 sm:grid-cols-2">
-      {featured.map((project) => (
-        <ProjectCard
-          slug={project.id}
-          title={project.data.title}
-          kicker={project.data.kicker}
-          tagline={project.data.tagline}
-          tags={project.data.tags}
-          status={project.data.status}
-          coverLabel={project.data.coverLabel}
-          coverSrc={project.data.coverSrc}
-          coverKind={project.data.coverKind}
-          coverFit={project.data.coverFit}
-          highlights={project.data.highlights}
-        />
-      ))}
-    </div>
+  <!-- Projects: all of them, grouped -->
+  <section id="projects" class="mx-auto max-w-6xl scroll-mt-28 px-4 py-12 sm:px-6">
+    <h2 class="font-mono-tight text-xs uppercase tracking-wider text-fg-dim">Projects</h2>
+    <div class="contour-rule mt-2"></div>
+    <ProjectGroups headingLevel="h3" />
   </section>
 
   <!-- Experience -->

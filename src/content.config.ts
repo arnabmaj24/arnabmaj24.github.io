@@ -27,6 +27,8 @@ const projects = defineCollection({
     featured: z.boolean().default(false),
     // Drafts are left out of the build (pages, lists, links) until their text is checked.
     draft: z.boolean().default(false),
+    // Optional button on the project's card, e.g. the sway demo on the brake controller.
+    demo: z.object({ label: z.string(), href: z.string() }).optional(),
     // "full" gets the whole case-study template, "compact" gets a shorter one-page treatment
     size: z.enum(['full', 'compact']).default('full'),
     order: z.number().default(99),

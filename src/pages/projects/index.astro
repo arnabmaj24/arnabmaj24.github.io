@@ -1,14 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import ProjectCard from '../../components/ProjectCard.astro';
+import ProjectGroups from '../../components/ProjectGroups.astro';
+import { GROUPS } from '../../lib/projectGroups';
 
-const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
-const groups = [
-  { key: 'work', title: 'Aston Dynamics', blurb: 'Products in customer beta: control, estimation, simulation and electronics.' },
-  { key: 'team', title: 'Teams, research & competitions', blurb: 'University design teams, a research internship, FRC and a hackathon.' },
-  { key: 'course', title: 'Course projects', blurb: '' },
-] as const;
+const projects = await getCollection('projects', ({ data }) => !data.draft);
 ---
 
 <Layout title="Projects" description="Controls, embedded and robotics projects: trailer sway control, vehicle simulation, embedded products, drones and rockets.">
@@ -17,7 +13,7 @@ const groups = [
     <div class="contour-rule mt-2"></div>
     <h1 class="mt-4 font-serif text-3xl font-semibold text-fg sm:text-4xl">Things I've built</h1>
     <nav aria-label="Project groups" class="mt-5 flex flex-wrap gap-2">
-      {groups.map((g) => {
+      {GROUPS.map((g) => {
         const n = projects.filter((p) => p.data.group === g.key).length;
         return n > 0 && (
           <a href={`#${g.key}`} class="rounded-sm border border-border-strong px-3 py-1.5 font-mono-tight text-xs uppercase tracking-wider text-fg-muted hover:border-accent hover:text-accent">
@@ -27,32 +23,8 @@ const groups = [
       })}
     </nav>
 
-    {groups.map((g) => {
-      const list = projects.filter((p) => p.data.group === g.key);
-      return list.length > 0 && (
-        <section id={g.key} class="mt-14 scroll-mt-24">
-          <h2 class="font-serif text-2xl font-medium text-fg">{g.title}</h2>
-          {g.blurb && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
-          <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((project) => (
-              <ProjectCard
-                slug={project.id}
-                title={project.data.title}
-                kicker={project.data.kicker}
-                tagline={project.data.tagline}
-                tags={project.data.tags}
-                status={project.data.status}
-                coverLabel={project.data.coverLabel}
-                coverSrc={project.data.coverSrc}
-                coverKind={project.data.coverKind}
-                coverFit={project.data.coverFit}
-                highlights={project.data.highlights}
-                compact={g.key !== 'work'}
-              />
-            ))}
-          </div>
-        </section>
-      );
-    })}
+    <div class="mt-8">
+      <ProjectGroups />
+    </div>
   </section>
 </Layout>

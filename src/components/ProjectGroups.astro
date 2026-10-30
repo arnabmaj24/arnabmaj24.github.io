@@ -1,0 +1,44 @@
+---
+// Every published project, grouped: Aston work first, then teams and research, then courses.
+// Used by the home page and the Projects page.
+import { getCollection } from 'astro:content';
+import ProjectCard from './ProjectCard.astro';
+import { GROUPS } from '../lib/projectGroups';
+
+interface Props {
+  headingLevel?: 'h2' | 'h3';
+}
+const { headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
+---
+
+{GROUPS.map((g) => {
+  const list = projects.filter((p) => p.data.group === g.key);
+  return list.length > 0 && (
+    <section id={g.key} class="mt-12 scroll-mt-28 first:mt-6">
+      <Heading class="font-serif text-2xl font-medium text-fg">{g.title}</Heading>
+      {g.blurb && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
+      <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((project) => (
+          <ProjectCard
+            slug={project.id}
+            title={project.data.title}
+            kicker={project.data.kicker}
+            tagline={project.data.tagline}
+            tags={project.data.tags}
+            status={project.data.status}
+            coverLabel={project.data.coverLabel}
+            coverSrc={project.data.coverSrc}
+            coverKind={project.data.coverKind}
+            coverFit={project.data.coverFit}
+            highlights={project.data.highlights}
+            compact={g.key !== 'work'}
+            demo={project.data.demo}
+          />
+        ))}
+      </div>
+    </section>
+  );
+})}

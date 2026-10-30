@@ -16,6 +16,7 @@ interface Props {
   coverFit?: 'cover' | 'contain';
   highlights?: { value: string; label: string }[];
   compact?: boolean;
+  demo?: { label: string; href: string };
 }
 
 const {
@@ -31,13 +32,13 @@ const {
   coverFit = 'cover',
   highlights = [],
   compact = false,
+  demo,
 } = Astro.props;
 ---
 
-<a
-  href={`/projects/${slug}`}
-  class="group flex h-full flex-col border border-border bg-bg-elevated transition-colors hover:border-border-strong"
->
+<!-- The title link stretches over the whole card (after:inset-0), so the whole card is clickable while the demo
+     button, layered above it, stays a separate link. -->
+<article class="group relative flex h-full flex-col border border-border bg-bg-elevated transition-colors hover:border-border-strong">
   {coverSrc ? (
   <div class="relative">
     <MediaSlot
@@ -61,7 +62,7 @@ const {
   <div class:list={['flex flex-1 flex-col p-5', compact && 'p-4']}>
     <p class="font-mono-tight text-[11px] uppercase tracking-wider text-fg-dim">{kicker}</p>
     <h3 class:list={['mt-2 font-serif font-medium text-fg group-hover:text-accent', compact ? 'text-lg' : 'text-xl']}>
-      {title}
+      <a href={`/projects/${slug}`} class="after:absolute after:inset-0 after:content-['']">{title}</a>
     </h3>
     <p class="mt-2 text-sm text-fg-muted">{tagline}</p>
     {
@@ -74,5 +75,15 @@ const {
     <div class="mt-auto flex flex-wrap gap-2 pt-4">
       {tags.slice(0, compact ? 3 : 4).map((t) => <Tag>{t}</Tag>)}
     </div>
+    {
+      demo && (
+        <a
+          href={demo.href}
+          class="relative z-10 mt-4 inline-flex items-center gap-2 self-start border border-accent bg-accent px-4 py-2 font-mono-tight text-xs uppercase tracking-wider text-bg transition-opacity hover:opacity-90"
+        >
+          {demo.label} <span aria-hidden="true">→</span>
+        </a>
+      )
+    }
   </div>
-</a>
+</article>
