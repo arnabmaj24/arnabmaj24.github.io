@@ -7,11 +7,13 @@ import { GROUPS } from '../lib/projectGroups';
 
 interface Props {
   headingLevel?: 'h2' | 'h3';
+  mediaOnly?: boolean; // only projects with a cover photo or video (the home page)
 }
-const { headingLevel = 'h2' } = Astro.props;
+const { headingLevel = 'h2', mediaOnly = false } = Astro.props;
 const Heading = headingLevel;
 
-const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort((a, b) => a.data.order - b.data.order);
+const projects = (await getCollection('projects', ({ data }) => !data.draft && (!mediaOnly || !!data.coverSrc)))
+  .sort((a, b) => a.data.order - b.data.order);
 ---
 
 {GROUPS.map((g) => {
@@ -19,7 +21,7 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
   return list.length > 0 && (
     <section id={g.key} class="mt-12 scroll-mt-28 first:mt-6">
       <Heading class="font-serif text-2xl font-medium text-fg">{g.title}</Heading>
-      {g.blurb && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
+      {g.blurb && !mediaOnly && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
       <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((project) => (
           <ProjectCard
