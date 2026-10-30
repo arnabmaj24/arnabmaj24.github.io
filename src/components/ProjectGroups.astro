@@ -7,12 +7,12 @@ import { GROUPS } from '../lib/projectGroups';
 
 interface Props {
   headingLevel?: 'h2' | 'h3';
-  mediaOnly?: boolean; // only projects with a cover photo or video (the home page)
+  forHome?: boolean; // the home page: only projects with a photo or video, and not marked home: false
 }
-const { headingLevel = 'h2', mediaOnly = false } = Astro.props;
+const { headingLevel = 'h2', forHome = false } = Astro.props;
 const Heading = headingLevel;
 
-const projects = (await getCollection('projects', ({ data }) => !data.draft && (!mediaOnly || !!data.coverSrc)))
+const projects = (await getCollection('projects', ({ data }) => !data.draft && (!forHome || (!!data.coverSrc && data.home))))
   .sort((a, b) => a.data.order - b.data.order);
 ---
 
@@ -21,7 +21,7 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft && (
   return list.length > 0 && (
     <section id={g.key} class="mt-12 scroll-mt-28 first:mt-6">
       <Heading class="font-serif text-2xl font-medium text-fg">{g.title}</Heading>
-      {g.blurb && !mediaOnly && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
+      {g.blurb && !forHome && <p class="mt-1 text-sm text-fg-muted">{g.blurb}</p>}
       <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((project) => (
           <ProjectCard
