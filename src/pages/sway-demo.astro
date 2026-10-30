@@ -18,7 +18,8 @@ import Layout from '../layouts/Layout.astro';
     <p class="mt-4 max-w-3xl text-fg-muted">
       This is based on ISO 9815, the standard lateral-stability test for car-trailer combinations, and the same kind of
       steering-impulse test I use to measure sway damping on real vehicles: drive at a steady speed, give one quick
-      steering input, and watch how the trailer settles. Here the steering input is a swerve around a tire in the lane.
+      steering input, and watch how the trailer settles. Here the steering input is a swerve around a tire in the lane,
+      and once the rig has straightened out, the driver speeds back up to the set speed.
       Lower the tongue weight or raise the speed and the trailer stops settling on its own. The bottom rig has a sway
       controller that watches the trailer's motion, decides it's swaying, and brakes the trailer to pull it straight.
     </p>
@@ -141,6 +142,7 @@ import Layout from '../layouts/Layout.astro';
           <li><strong class="text-fg">A latch stops it twitching.</strong> It counts up while the checks agree and down three times as fast when they don't, so the checks have to agree for 80 ms in a row to engage, and it lets go quickly once they stop.</li>
           <li><strong class="text-fg">Then it brakes the trailer.</strong> Braking the trailer harder than the truck puts the hitch in tension, which pulls the trailer back in line behind the truck, and it sheds the speed that made the rig unstable.</li>
           <li><strong class="text-fg">It errs on the side of braking.</strong> It's tuned to save every setting on the sliders, down to a tail-heavy trailer at 140 km/h. Catching that case means acting early, so after a sharp swerve at speed it brakes briefly even when the trailer would have settled on its own.</li>
+          <li><strong class="text-fg">It can't make an unstable speed safe.</strong> Once the trailer is straight, the driver speeds back up. At the most extreme settings, back at full speed the rig is as unstable as it was before, so the trailer can start swaying again and the controller has to catch it again. On a real road, the fix after a sway event is to stay slower.</li>
         </ul>
       </div>
       <div>
@@ -150,7 +152,9 @@ import Layout from '../layouts/Layout.astro';
           holding the hitch together, all running in your browser (about 4 ms per run). Two things differ from a strict
           ISO 9815 run, which uses one steering input for every speed and then holds the wheel still: the swerve is sized
           so the rig dodges the tire at any speed, and a lane-keeping driver (pure pursuit, steering toward the lane centre
-          about 2 seconds ahead) brings both rigs back afterwards, the same in both runs. The vehicle is a typical full-size
+          about 2 seconds ahead) brings both rigs back afterwards. The driver also holds the throttle still while the
+          trailer sways, then accelerates back to the set speed once it has straightened out. Both drivers behave the same
+          in both runs. The vehicle is a typical full-size
           pickup and travel trailer, not a specific model. The controller re-implements the logic described on the{' '}
           <a href="/projects/stability-control" class="text-accent hover:underline">project page</a> with demo thresholds:
           it isn't Aston's production code or tuning, and the numbers here are a model, not test results. The real test
@@ -264,6 +268,11 @@ import Layout from '../layouts/Layout.astro';
     const end = Math.max(...tail);
     const off = f.find((q) => Math.abs(q.y1) > ROAD_EDGE + 1.5);
     if (off) return { text: `Left the road at ${off.t.toFixed(1)} s`, color: C.rust };
+    if (end > 3 && f.some((q) => q.resuming)) {
+      // It straightened out, sped back up, and the set speed made it sway again.
+      const braking = f.slice(-150).some((q) => q.brake > 0.01); // last 3 s
+      return { text: `Swaying again back at ${run.params.speedKmh} km/h${braking ? ' · controller braking' : ''}`, color: C.rust };
+    }
     if (end > 3) return { text: `Still swaying ±${end.toFixed(0)}° · peak ${peak.toFixed(0)}°`, color: C.rust };
     return { text: `Settled · peak ${peak.toFixed(1)}°`, color: C.accent };
   }
@@ -416,6 +425,13 @@ import Layout from '../layouts/Layout.astro';
       ctx.fillRect(8, 8, 112, 65);
       ctx.fillStyle = C.fg;
       hud.forEach((s, k) => ctx.fillText(s, 16, 13 + k * 15));
+    }
+    if (f.resuming && f.speed < run.params.speedKmh - 1) {
+      ctx.font = `500 11px "JetBrains Mono", monospace`;
+      ctx.fillStyle = C.accent;
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`speeding back up to ${run.params.speedKmh} km/h`, 10, h - 8);
+      ctx.textBaseline = 'top';
     }
     if (f.t >= 1 && f.t <= 1.8) {
       ctx.font = `500 11px "JetBrains Mono", monospace`;

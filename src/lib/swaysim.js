@@ -16,7 +16,7 @@ export const DEFAULTS = {
   tongueWeight: 0.04, // fraction of trailer weight carried by the hitch; negative means tail-heavy
   trailerMass: 3000, // kg
   impulseDeg: 1.5, // peak front-wheel angle of the steering impulse
-  duration: 20, // s
+  duration: 25, // s: long enough to settle and get back up to speed
 };
 
 // A full-size pickup and a tandem-axle travel trailer. Round numbers, chosen to be typical, not a specific model.
@@ -87,6 +87,21 @@ function makeDriver(wheelbase) {
   };
 }
 
+// The driver's right foot, also the same in both runs. It holds the throttle still through the swerve and while the
+// trailer sways (the usual advice: don't accelerate into sway). Once the rig has straightened out (controller off, hitch
+// angle and trailer yaw rate small for a second), it accelerates back to the set speed like a driver resuming cruise,
+// limited by engine power. If the trailer starts swaying again, it goes back to holding the throttle.
+export const THROTTLE = {
+  settleHitch: 1.0, // deg: straightened out below this hitch angle...
+  settleYaw: 2.0, // deg/s: ...and this trailer yaw rate...
+  settleTime: 1.0, // s: ...held this long
+  swayHitch: 3.0, // deg: sway again above this (or the controller engaging): hold the throttle
+  accel: 1.5, // m/s^2: the most it asks for (firm, for a pickup pulling 3 t)
+  jerk: 1.0, // m/s^3: how quickly it gets on and off the throttle
+  kp: 0.4, // 1/s: acceleration asked for per m/s below the set speed
+  powerKW: 220, // at the wheels
+};
+
 // ---------------------------------------------------------------- sway controller (demo re-implementation)
 // Watches the trailer's yaw rate at 100 Hz over a 4 s window. Three checks must agree: it oscillates (enough zero
 // crossings), it has energy (yaw-rate RMS over the window and over the last second, so a swing that has already died
@@ -96,6 +111,8 @@ function makeDriver(wheelbase) {
 // Tuned by searching the whole slider range (tongue weight -5% to 15%, 60 to 140 km/h) for settings where every
 // controlled run stays out of a jackknife, stays on the road and settles. Saving the worst corner (a tail-heavy trailer
 // at 140 km/h) takes early, firm braking, so these thresholds also brake briefly after any sharp swerve at speed.
+// (Re-checked with the THROTTLE driver over 25 s: no jackknife or road exit anywhere; at 135-140 km/h with a light or
+// tail-heavy trailer, 9 settings start swaying again once back at speed, which is the physics, not the controller.)
 export const CONTROLLER = {
   windowN: 400, // 4 s at 100 Hz
   deadband: 0.5, // deg/s: zero crossings are counted outside this band
@@ -170,8 +187,13 @@ export function simulate(params, { controlled, driver = true }) {
   const Fzr = T.m * G + Ft - Fzf;
   const Fzt = R.m * G - Ft;
 
-  // Constant drive force: whatever holds the starting speed, like a driver holding the throttle still.
-  const Fdrive = 0.5 * RHO * (T.CdA + R.CdA) * u0 * u0 + CRR * (T.m + R.m) * G;
+  // Drive force at the truck's rear axle. It starts at whatever holds the set speed (see THROTTLE).
+  const M = T.m + R.m;
+  const resist = (u) => 0.5 * RHO * (T.CdA + R.CdA) * u * u + CRR * M * G;
+  let Fdrive = resist(u0);
+  let resuming = false; // accelerating back to (or holding) the set speed
+  let calm = 0; // how long the rig has been straight [s]
+  let aCmd = 0; // acceleration the driver is asking for while resuming [m/s^2]
 
   // State: positions, velocities (world frame), headings, yaw rates.
   const s = {
@@ -200,6 +222,26 @@ export function simulate(params, { controlled, driver = true }) {
       const u1w = s.vx1 * Math.cos(s.p1) + s.vy1 * Math.sin(s.p1);
       steerDriver = drive(t, s.y1, s.p1, u1w, DT * CTRL_EVERY);
     }
+    if (k % CTRL_EVERY === 0 && t > IMPULSE_T0 + IMPULSE_T) {
+      const dtc = DT * CTRL_EVERY;
+      const u = Math.max(s.vx1 * Math.cos(s.p1) + s.vy1 * Math.sin(s.p1), 0.5);
+      const hitchDeg = Math.abs((wrapPi(s.p2 - s.p1) * 180) / Math.PI);
+      const yawDeg = Math.abs((s.w2 * 180) / Math.PI);
+      const straight = !cs.engaged && cs.brake < 0.01 && hitchDeg < THROTTLE.settleHitch && yawDeg < THROTTLE.settleYaw;
+      calm = straight ? calm + dtc : 0;
+      if (resuming && (cs.engaged || hitchDeg > THROTTLE.swayHitch)) {
+        resuming = false; // swaying again: back off to a steady throttle and hold it
+        Fdrive = Math.min(Fdrive, resist(u));
+      } else if (!resuming && calm >= THROTTLE.settleTime) {
+        resuming = true;
+        aCmd = (Fdrive - resist(u)) / M; // pick up from the current throttle, no jump
+      }
+      if (resuming) {
+        const want = Math.max(-0.3, Math.min(THROTTLE.accel, THROTTLE.kp * (u0 - u)));
+        aCmd += Math.max(-THROTTLE.jerk * dtc, Math.min(THROTTLE.jerk * dtc, want - aCmd));
+        Fdrive = Math.max(0, Math.min(resist(u) + M * aCmd, (THROTTLE.powerKW * 1000) / u));
+      }
+    }
     const delta = steerImpulse(t, amp) + steerDriver;
 
     // Body-frame velocities.
@@ -213,7 +255,7 @@ export function simulate(params, { controlled, driver = true }) {
     const af = delta - Math.atan2(v1 + T.a * s.w1, uu1);
     const ar = -Math.atan2(v1 - T.b * s.w1, uu1);
     const Fyf = tireForce(T.Cf, af, Fzf);
-    const Fyr = tireForce(T.Cr, ar, Fzr);
+    const Fyr = tireForce(T.Cr, ar, Fzr); // simplification: drive force doesn't use up rear-tire grip
     const drag1 = 0.5 * RHO * T.CdA * u1 * Math.abs(u1) + CRR * T.m * G * Math.sign(u1);
     const fbx1 = Fdrive - Fyf * Math.sin(delta) - drag1;
     const fby1 = Fyf * Math.cos(delta) + Fyr;
@@ -266,6 +308,7 @@ export function simulate(params, { controlled, driver = true }) {
         hitch: (hitch * 180) / Math.PI, speed: u1 * 3.6, delta: (delta * 180) / Math.PI,
         yaw2: (s.w2 * 180) / Math.PI, ay2: ay2 / G,
         brake: cs.brake, engaged: cs.engaged, count: cs.count, osc: cs.osc, energy: cs.energy, band: cs.band,
+        resuming,
       });
     }
     if (Math.abs(hitch) > (55 * Math.PI) / 180) {
